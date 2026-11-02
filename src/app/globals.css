@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+/* hover outline in the editor, constant on-screen thickness regardless of zoom */
+.cc-el:hover {
+  outline: calc(2px / var(--s, 1)) solid rgba(124, 58, 237, 0.55);
+}
+
+textarea {
+  font-family: inherit;
+}
