@@ -13,6 +13,8 @@ import {
 import { DesignView, ElementBody, PageView, makeU, textStyle, wrapperStyle } from "@/components/DesignView";
 import { CATEGORIES } from "@/lib/categories";
 import { cloneDoc, makeImage, pagesOf, resizeDoc, uid, type Doc, type El, type Page, type TextEl } from "@/lib/design";
+import { patchLocalDesign } from "@/lib/local-designs";
+import { getOwnerId } from "@/lib/owner";
 import { downloadBlob, imagesToVideo, renderToImage, renderToImageElement } from "./export";
 import { FONTS } from "@/lib/fonts";
 import {
@@ -122,11 +124,17 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
     if (!dirtyRef.current) return;
     dirtyRef.current = false;
     setStatus("saving");
+    // local mirror first — instant and survives serverless restarts
+    try {
+      patchLocalDesign(id, { title: titleRef.current, data: docRef.current, category });
+    } catch {
+      /* ignore quota errors */
+    }
     try {
       const r = await fetch(`/api/designs/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: titleRef.current, data: docRef.current }),
+        body: JSON.stringify({ title: titleRef.current, data: docRef.current, category, ownerId: getOwnerId() }),
       });
       if (!r.ok) throw new Error("save failed");
       setStatus(dirtyRef.current ? "unsaved" : "saved");
@@ -484,11 +492,16 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
       window.removeEventListener("beforeunload", beforeUnload);
       document.removeEventListener("visibilitychange", vis);
       if (dirtyRef.current) {
+        try {
+          patchLocalDesign(id, { title: titleRef.current, data: docRef.current, category });
+        } catch {
+          /* ignore */
+        }
         void fetch(`/api/designs/${id}`, {
           method: "PUT",
           keepalive: true,
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: titleRef.current, data: docRef.current }),
+          body: JSON.stringify({ title: titleRef.current, data: docRef.current, category, ownerId: getOwnerId() }),
         });
       }
     };

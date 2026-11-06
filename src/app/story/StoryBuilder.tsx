@@ -9,6 +9,7 @@ import { downloadBlob, imagesToVideo, renderToImage, renderToImageElement, share
 import { FONTS } from "@/lib/fonts";
 import { createDesign } from "@/lib/owner";
 import { getStoredLang, setStoredLang } from "@/components/LanguageSwitcher";
+import { patchLocalDesign } from "@/lib/local-designs";
 
 const EVENT_ORDER = ["haldi", "mehendi", "sangeet", "shaadi", "reception"];
 
@@ -135,8 +136,14 @@ export default function StoryBuilder() {
         height: doc.height,
         title: `${couple} — Story Invite`,
       });
-      // send the whole multi-page doc through sessionStorage (keeps URL short)
+      // hand the whole multi-page doc to the editor; also mirror it locally so it
+      // opens even if the server instance that created it is gone (serverless)
       sessionStorage.setItem(`story-${id}`, JSON.stringify(doc));
+      try {
+        patchLocalDesign(id, { title: `${couple} — Story Invite`, data: doc, category: "wedding" });
+      } catch {
+        /* ignore */
+      }
       window.location.href = `/editor/${id}?story=1`;
     } catch {
       alert("Could not open the editor.");
