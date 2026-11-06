@@ -83,11 +83,11 @@ export function Footer() {
         <div>
           <p className="mb-3 text-sm font-semibold text-white">Developers</p>
           <ul className="space-y-2 text-sm">
-            <li>
+            {/* <li>
               <a href="/api/templates" className="hover:text-white">
                 Templates API (JSON)
               </a>
-            </li>
+            </li> */}
             <li>
               <Link href="/my-designs" className="hover:text-white">
                 My designs
