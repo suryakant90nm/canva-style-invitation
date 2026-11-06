@@ -61,10 +61,10 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-7xl px-6 py-10">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+            <h1 className="text-2xl font-extrabold tracking-tight sm:text-4xl">
               {cat ? `${cat.emoji} ${cat.plural}` : "All templates"}
             </h1>
             <p className="mt-1 text-slate-500">
@@ -129,7 +129,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
           </span>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           <BlankDesignButton
             category={cat?.slug}
             className="flex aspect-[4/5] flex-col items-center justify-center gap-2 self-start rounded-2xl border-2 border-dashed border-violet-300 bg-violet-50 text-violet-700 transition hover:bg-violet-100"

@@ -306,17 +306,24 @@ export async function listDesigns(ownerId: string): Promise<DesignRecord[]> {
   return rows as unknown as DesignRecord[];
 }
 
+const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+
 export async function getDesign(id: string): Promise<DesignRecord | null> {
-  if (!(await dbAvailable())) return designStore.get(id) as unknown as DesignRecord | null;
-  const [row] = await d().select().from(designs).where(eq(designs.id, id)).limit(1);
-  return (row as unknown as DesignRecord) ?? null;
+  const mem = designStore.get(id) as unknown as DesignRecord | undefined;
+  if (!(await dbAvailable()) || !isUuid(id)) return mem ?? null;
+  try {
+    const [row] = await d().select().from(designs).where(eq(designs.id, id)).limit(1);
+    return (row as unknown as DesignRecord) ?? mem ?? null;
+  } catch {
+    return mem ?? null;
+  }
 }
 
 export async function updateDesign(
   id: string,
   patch: { title?: string; category?: string; data?: Doc },
 ): Promise<boolean> {
-  if (!(await dbAvailable())) {
+  if (!(await dbAvailable()) || !isUuid(id)) {
     const rec = designStore.get(id);
     if (!rec) return false;
     if (typeof patch.title === "string") rec.title = patch.title.slice(0, 120) || "Untitled design";
@@ -339,6 +346,45 @@ export async function updateDesign(
   }
   const rows = await d().update(designs).set(values).where(eq(designs.id, id)).returning({ id: designs.id });
   return rows.length > 0;
+}
+
+/** Re-create a design the browser still has but the server lost (serverless memory). */
+export async function restoreDesign(input: {
+  id: string;
+  ownerId: string;
+  title: string;
+  category: string;
+  data: Doc;
+}): Promise<void> {
+  const rec = {
+    id: input.id,
+    ownerId: input.ownerId,
+    title: input.title || "Untitled design",
+    category: input.category || "invitation",
+    width: input.data.width,
+    height: input.data.height,
+    data: input.data,
+    templateId: null as number | null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  if (!(await dbAvailable())) {
+    designStore.set(input.id, rec as never);
+    return;
+  }
+  // with a database the id must be a uuid; memory ids are 32-hex → only insert if valid
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.id)) {
+    designStore.set(input.id, rec as never);
+    return;
+  }
+  try {
+    await d()
+      .insert(designs)
+      .values({ id: input.id, ownerId: rec.ownerId, title: rec.title, category: rec.category, width: rec.width, height: rec.height, data: rec.data })
+      .onConflictDoNothing();
+  } catch {
+    designStore.set(input.id, rec as never);
+  }
 }
 
 export async function deleteDesign(id: string): Promise<void> {

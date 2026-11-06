@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { DesignView } from "@/components/DesignView";
 import { BlankDesignButton } from "@/components/StartButtons";
 import { getOwnerId } from "@/lib/owner";
+import { deleteLocalDesign, listLocalDesigns } from "@/lib/local-designs";
 import type { Doc } from "@/lib/design";
 
 type Row = { id: string; title: string; category: string; data: Doc; updatedAt: string };
@@ -14,15 +15,25 @@ export default function MyDesigns() {
 
   useEffect(() => {
     const owner = getOwnerId();
+    // merge: server rows (if any) + browser mirror; newest first, de-duplicated by id
+    const local = listLocalDesigns(owner) as unknown as Row[];
     fetch(`/api/designs?owner=${owner}`)
       .then((r) => r.json())
-      .then((j: { designs: Row[] }) => setRows(j.designs))
-      .catch(() => setRows([]));
+      .then((j: { designs: Row[] }) => {
+        const map = new Map<string, Row>();
+        for (const d of [...(j.designs ?? []), ...local]) {
+          const prev = map.get(d.id);
+          if (!prev || new Date(d.updatedAt) > new Date(prev.updatedAt)) map.set(d.id, d);
+        }
+        setRows(Array.from(map.values()).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()));
+      })
+      .catch(() => setRows(local));
   }, []);
 
   async function remove(id: string) {
     if (!confirm("Delete this design permanently?")) return;
-    await fetch(`/api/designs/${id}`, { method: "DELETE" });
+    deleteLocalDesign(id);
+    await fetch(`/api/designs/${id}`, { method: "DELETE" }).catch(() => undefined);
     setRows((r) => (r ? r.filter((x) => x.id !== id) : r));
   }
 

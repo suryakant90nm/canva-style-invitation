@@ -82,7 +82,7 @@ export default function MegaMenu({ templateThumbs }: Props) {
       <button
         type="button"
         onClick={() => setMobile((m) => !m)}
-        className="grid h-10 w-10 place-items-center rounded-lg text-slate-700 hover:bg-slate-100 lg:hidden"
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-700 hover:bg-slate-100 lg:hidden"
         aria-label="Menu"
       >
         <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

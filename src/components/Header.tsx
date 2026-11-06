@@ -10,10 +10,10 @@ import { T } from "./T";
 export function Logo({ light = false }: { light?: boolean }) {
   return (
     <Link href="/" className="flex items-center gap-2" aria-label={`${SITE.name} home`}>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 text-lg text-white shadow-md">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 text-base text-white shadow-md sm:h-9 sm:w-9 sm:text-lg">
         ✉
       </span>
-      <span className={`text-xl font-extrabold tracking-tight ${light ? "text-white" : "text-slate-900"}`}>
+      <span className={`text-lg font-extrabold tracking-tight sm:text-xl ${light ? "text-white" : "text-slate-900"}`}>
         Shubh<span className="text-fuchsia-500">Invite</span>
       </span>
     </Link>
@@ -35,10 +35,10 @@ export async function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/95 backdrop-blur">
-      <div className="relative mx-auto flex h-[68px] w-full max-w-[1400px] items-center gap-3 px-4 sm:px-6 lg:gap-4 lg:px-6">
+      <div className="relative mx-auto flex h-14 w-full max-w-[1400px] items-center gap-2 px-3 sm:h-[68px] sm:gap-3 sm:px-6 lg:gap-4">
         <Logo />
         <MegaMenu templateThumbs={thumbs} />
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
           <LanguageSwitcher compact />
           <Link
             href="/my-designs"
@@ -56,7 +56,7 @@ export async function Header() {
 export function Footer() {
   return (
     <footer className="mt-20 bg-slate-950 text-slate-300">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-5">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-14 md:grid-cols-4">
         <div className="md:col-span-2">
           <Logo light />
           <p className="mt-4 max-w-sm text-sm text-slate-400">
@@ -79,17 +79,6 @@ export function Footer() {
               </li>
             ))}
           </ul>
-        </div>
-        <div>
-          <p className="mb-3 text-sm font-semibold text-white">Languages</p>
-          <ul className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
-            {["Hindi", "Marathi", "Rajasthani", "Punjabi", "Gujarati", "Bengali", "Tamil", "Telugu", "Malayalam", "Kannada", "Odia", "Urdu"].map((l) => (
-              <li key={l} className="text-slate-400">{l}</li>
-            ))}
-          </ul>
-          <Link href="/story" className="mt-4 inline-block font-semibold text-amber-300 hover:underline">
-            🎬 Make a Story Invite →
-          </Link>
         </div>
         <div>
           <p className="mb-3 text-sm font-semibold text-white">Developers</p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { saveLocalDesign, type LocalDesign } from "./local-designs";
 
 const KEY = "cardcanvas-owner";
 
@@ -22,6 +23,11 @@ export function useOwnerId(): string {
   return id;
 }
 
+/**
+ * Create a design on the server AND mirror it in localStorage, so the editor
+ * can always open it even if the server instance that created it is gone
+ * (serverless without a database).
+ */
 export async function createDesign(opts: {
   templateSlug?: string;
   category?: string;
@@ -35,6 +41,15 @@ export async function createDesign(opts: {
     body: JSON.stringify({ ownerId: getOwnerId(), ...opts }),
   });
   if (!res.ok) throw new Error("Could not create design");
-  const j = (await res.json()) as { design: { id: string } };
+  const j = (await res.json()) as { design: LocalDesign };
+  try {
+    saveLocalDesign({
+      ...j.design,
+      createdAt: String(j.design.createdAt ?? new Date().toISOString()),
+      updatedAt: String(j.design.updatedAt ?? new Date().toISOString()),
+    });
+  } catch {
+    /* localStorage unavailable — server copy still exists */
+  }
   return j.design.id;
 }

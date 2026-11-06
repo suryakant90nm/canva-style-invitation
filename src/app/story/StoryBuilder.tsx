@@ -9,6 +9,7 @@ import { downloadBlob, imagesToVideo, renderToImage, renderToImageElement, share
 import { FONTS } from "@/lib/fonts";
 import { createDesign } from "@/lib/owner";
 import { getStoredLang, setStoredLang } from "@/components/LanguageSwitcher";
+import { patchLocalDesign } from "@/lib/local-designs";
 
 const EVENT_ORDER = ["haldi", "mehendi", "sangeet", "shaadi", "reception"];
 
@@ -135,8 +136,14 @@ export default function StoryBuilder() {
         height: doc.height,
         title: `${couple} — Story Invite`,
       });
-      // send the whole multi-page doc through sessionStorage (keeps URL short)
+      // hand the whole multi-page doc to the editor; also mirror it locally so it
+      // opens even if the server instance that created it is gone (serverless)
       sessionStorage.setItem(`story-${id}`, JSON.stringify(doc));
+      try {
+        patchLocalDesign(id, { title: `${couple} — Story Invite`, data: doc, category: "wedding" });
+      } catch {
+        /* ignore */
+      }
       window.location.href = `/editor/${id}?story=1`;
     } catch {
       alert("Could not open the editor.");
@@ -163,9 +170,9 @@ export default function StoryBuilder() {
     "w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100";
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-4xl">
           Story Invite — हल्दी से रिसेप्शन तक, एक ही कार्ड में
         </h1>
         <p className="mt-2 max-w-2xl text-slate-600">
@@ -260,8 +267,8 @@ export default function StoryBuilder() {
           </div>
         </div>
 
-        {/* RIGHT: preview + actions */}
-        <div className="lg:sticky lg:top-24 lg:self-start">
+        {/* RIGHT: preview + actions (shown first on mobile) */}
+        <div className="order-first lg:order-none lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-bold text-slate-900">
@@ -272,7 +279,7 @@ export default function StoryBuilder() {
               </button>
             </div>
 
-            <div className="max-h-[520px] overflow-y-auto rounded-xl bg-slate-50 p-3">
+            <div className="max-h-[360px] overflow-y-auto rounded-xl bg-slate-50 p-3 sm:max-h-[520px]">
               {preview ? (
                 <PagesStack doc={doc} />
               ) : (

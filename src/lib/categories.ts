@@ -27,7 +27,7 @@ export const CATEGORIES: Category[] = [
     emoji: "💍",
     description: "Shadi, engagement, mehendi, haldi & save-the-date cards.",
     gradient: "linear-gradient(135deg,#8c1c2e,#d4a24c)",
-    tags: ["Hindu", "Modern", "Engagement", "Mehendi", "Save the Date"],
+    tags: ["Hindu", "Modern", "Engagement", "Mehendi", "Save the Date", "Marathi", "Royal", "Photo Collage"],
     size: { w: 700, h: 1000 },
   },
   {

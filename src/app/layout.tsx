@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { GOOGLE_FONTS_HREF } from "@/lib/fonts";
 import { SITE } from "@/lib/site";
@@ -39,6 +39,14 @@ export const metadata: Metadata = {
   category: "design",
 };
 
+/** Without this phones render the page at desktop width and shrink it. */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#7c3aed",
+};
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en-IN">
@@ -47,7 +55,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link rel="stylesheet" href={GOOGLE_FONTS_HREF} />
-        <meta name="theme-color" content="#7c3aed" />
       </head>
       <body className="bg-slate-50 font-sans text-slate-900 antialiased">{children}</body>
     </html>

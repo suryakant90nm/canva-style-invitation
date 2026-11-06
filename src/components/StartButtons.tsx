@@ -104,7 +104,7 @@ export function CreateMenu() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="whitespace-nowrap rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-500/30 transition hover:brightness-110"
+        className="whitespace-nowrap rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3.5 py-2 text-sm font-semibold text-white shadow-md shadow-violet-500/30 transition hover:brightness-110 sm:px-5 sm:py-2.5"
       >
         {busy ? "Creating…" : <><span className="xl:hidden">+ Create</span><span className="hidden xl:inline">+ Create a design</span></>}
       </button>
