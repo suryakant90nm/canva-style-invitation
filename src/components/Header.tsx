@@ -80,7 +80,7 @@ export function Footer() {
             ))}
           </ul>
         </div>
-        <div>
+        {/* <div>
           <p className="mb-3 text-sm font-semibold text-white">Developers</p>
           <ul className="space-y-2 text-sm">
             {/* <li>
@@ -94,7 +94,7 @@ export function Footer() {
               </Link>
             </li>
           </ul>
-        </div>
+        </div> */}
       </div>
       <div className="border-t border-white/10 py-5 text-center text-xs text-slate-500">
         © {new Date().getFullYear()} {SITE.name} · Made with ♥ for every celebration
