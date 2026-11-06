@@ -53,7 +53,7 @@ export default async function TemplateDetail({ params }: { params: Promise<{ slu
           }),
         }}
       />
-      <main className="mx-auto max-w-7xl px-6 py-10">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
         <nav className="mb-6 text-sm text-slate-500">
           <Link href="/templates" className="hover:text-violet-600">
             Templates
@@ -66,7 +66,7 @@ export default async function TemplateDetail({ params }: { params: Promise<{ slu
         </nav>
 
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
-          <div className="grid place-items-center rounded-3xl bg-gradient-to-br from-slate-200 to-slate-100 p-8 ring-1 ring-slate-200">
+          <div className="grid place-items-center rounded-3xl bg-gradient-to-br from-slate-200 to-slate-100 p-4 ring-1 ring-slate-200 sm:p-8">
             <div className="w-full shadow-2xl" style={{ maxWidth: portrait ? 440 : 640 }}>
               <DesignView doc={t.data} />
             </div>
@@ -76,7 +76,7 @@ export default async function TemplateDetail({ params }: { params: Promise<{ slu
             <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-violet-700">
               {cat?.emoji} {cat?.name ?? t.category}
             </span>
-            <h1 className="mt-4 text-4xl font-extrabold tracking-tight">{t.title}</h1>
+            <h1 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-4xl">{t.title}</h1>
             <p className="mt-3 text-slate-600">
               Fully editable – change the names, date, venue, fonts, colours and background. Add your own photos and
               decorations, then download in HD.

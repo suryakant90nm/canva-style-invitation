@@ -10,10 +10,10 @@ import { T } from "./T";
 export function Logo({ light = false }: { light?: boolean }) {
   return (
     <Link href="/" className="flex items-center gap-2" aria-label={`${SITE.name} home`}>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 text-lg text-white shadow-md">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 text-base text-white shadow-md sm:h-9 sm:w-9 sm:text-lg">
         ✉
       </span>
-      <span className={`text-xl font-extrabold tracking-tight ${light ? "text-white" : "text-slate-900"}`}>
+      <span className={`text-lg font-extrabold tracking-tight sm:text-xl ${light ? "text-white" : "text-slate-900"}`}>
         Shubh<span className="text-fuchsia-500">Invite</span>
       </span>
     </Link>
@@ -35,10 +35,10 @@ export async function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/95 backdrop-blur">
-      <div className="relative mx-auto flex h-[68px] w-full max-w-[1400px] items-center gap-3 px-4 sm:px-6 lg:gap-4 lg:px-6">
+      <div className="relative mx-auto flex h-14 w-full max-w-[1400px] items-center gap-2 px-3 sm:h-[68px] sm:gap-3 sm:px-6 lg:gap-4">
         <Logo />
         <MegaMenu templateThumbs={thumbs} />
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
           <LanguageSwitcher compact />
           <Link
             href="/my-designs"

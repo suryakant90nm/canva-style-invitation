@@ -52,13 +52,13 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
         onClick={() => setOpen((o) => !o)}
         aria-label="Change language / भाषा बदलें"
         className={`flex items-center gap-2 rounded-full border-2 border-violet-200 bg-violet-50 font-semibold text-violet-800 transition hover:border-violet-400 hover:bg-violet-100 ${
-          compact ? "px-3 py-1.5 text-xs" : "px-3.5 py-2 text-sm"
+          compact ? "px-2.5 py-1.5 text-xs sm:px-3" : "px-3.5 py-2 text-sm"
         }`}
         title="Change language"
       >
         <span className="text-base leading-none">🌐</span>
-        <span>{active.native}</span>
-        <span className="text-xs text-violet-400">▾</span>
+        <span className={compact ? "hidden sm:inline" : ""}>{active.native}</span>
+        <span className="hidden text-xs text-violet-400 sm:inline">▾</span>
       </button>
 
       {open && (

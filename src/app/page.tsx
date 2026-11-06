@@ -81,31 +81,31 @@ export default async function HomePage() {
         <section className="relative overflow-hidden bg-gradient-to-br from-violet-700 via-fuchsia-600 to-rose-500">
           <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
           <div className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-amber-300/20 blur-3xl" />
-          <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-6 py-16 lg:grid-cols-2 lg:py-24">
+          <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-10 sm:px-6 sm:py-16 lg:grid-cols-2 lg:py-24">
             <div className="text-white">
-              <span className="inline-block rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-widest backdrop-blur">
+              <span className="inline-block max-w-full truncate rounded-full bg-white/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur sm:px-4 sm:text-xs sm:tracking-widest">
                 <T k="heroBadge" />
               </span>
-              <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
+              <h1 className="mt-4 text-[1.9rem] font-extrabold leading-[1.1] tracking-tight sm:mt-5 sm:text-5xl lg:text-6xl">
                 <T k="heroTitle" /> <span className="text-amber-300"><T k="heroHighlight" /></span>
               </h1>
-              <p className="mt-5 max-w-xl text-lg text-white/85">
+              <p className="mt-4 max-w-xl text-base text-white/85 sm:mt-5 sm:text-lg">
                 <T k="heroSub" />
               </p>
-              <form action="/templates" className="mt-8 flex max-w-xl overflow-hidden rounded-full bg-white p-1.5 shadow-2xl">
+              <form action="/templates" className="mt-6 flex max-w-xl overflow-hidden rounded-full bg-white p-1.5 shadow-2xl sm:mt-8">
                 <input
                   name="q"
-                  placeholder='Search templates – "mehendi", "gold", "boy"…'
-                  className="min-w-0 flex-1 bg-transparent px-5 text-slate-900 outline-none placeholder:text-slate-400"
+                  placeholder="Search templates…"
+                  className="min-w-0 flex-1 bg-transparent px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 sm:px-5 sm:text-base"
                 />
-                <button className="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-700">
+                <button className="shrink-0 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 sm:px-6 sm:py-3">
                   <T k="search" />
                 </button>
               </form>
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-5 flex flex-wrap gap-2 sm:mt-6 sm:gap-3">
                 <Link
                   href="/story"
-                  className="rounded-full bg-amber-300 px-5 py-2.5 text-sm font-bold text-slate-900 transition hover:bg-amber-200"
+                  className="w-full rounded-full bg-amber-300 px-5 py-2.5 text-center text-sm font-bold text-slate-900 transition hover:bg-amber-200 sm:w-auto"
                 >
                   <T k="storyCta" />
                 </Link>
@@ -113,13 +113,13 @@ export default async function HomePage() {
                   <Link
                     key={c.slug}
                     href={`/templates?category=${c.slug}`}
-                    className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur transition hover:bg-white hover:text-violet-700"
+                    className="rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-xs font-medium backdrop-blur transition hover:bg-white hover:text-violet-700 sm:px-4 sm:py-2 sm:text-sm"
                   >
                     {c.emoji} {c.name}
                   </Link>
                 ))}
               </div>
-              <p className="mt-5 text-sm text-white/70">
+              <p className="mt-5 text-xs leading-relaxed text-white/70 sm:text-sm">
                 <T k="languagesLine" />: हिंदी · मराठी · राजस्थानी · ਪੰਜਾਬੀ · ગુજરાતી · বাংলা · தமிழ் · తెలుగు · മലയാളം · ಕನ್ನಡ · ଓଡ଼ିଆ · اردو · English
               </p>
             </div>
@@ -146,10 +146,10 @@ export default async function HomePage() {
         </section>
 
         {/* CATEGORIES */}
-        <section className="mx-auto max-w-7xl px-6 py-16">
-          <div className="mb-8 flex items-end justify-between">
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
+          <div className="mb-6 flex items-end justify-between sm:mb-8">
             <div>
-              <h2 className="text-3xl font-extrabold tracking-tight"><T k="browse" /></h2>
+              <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl"><T k="browse" /></h2>
               <p className="mt-1 text-slate-500"><T k="browseSub" /></p>
             </div>
           </div>
@@ -191,16 +191,16 @@ export default async function HomePage() {
 
         {/* PER CATEGORY ROWS */}
         {CATEGORIES.map((c, i) => (
-          <section key={c.slug} className="mx-auto max-w-7xl px-6 py-8">
+          <section key={c.slug} className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
             <div className="mb-5 flex items-end justify-between">
-              <h2 className="text-2xl font-extrabold tracking-tight">
+              <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">
                 {c.emoji} {c.plural}
               </h2>
               <Link href={`/templates?category=${c.slug}`} className="text-sm font-semibold text-violet-600 hover:underline">
                 <T k="seeAll" />
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">
               {perCategory[i].map((t) => (
                 <TemplateCard key={t.slug} t={t} />
               ))}
@@ -209,8 +209,8 @@ export default async function HomePage() {
         ))}
 
         {/* SEO COPY */}
-        <section className="mx-auto max-w-5xl px-6 py-10">
-          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+        <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+          <h2 className="text-xl font-extrabold tracking-tight sm:text-3xl">
             India&apos;s easiest invitation card maker — marriage, baby shower &amp; birthday cards
           </h2>
           <div className="mt-4 grid gap-6 text-sm leading-relaxed text-slate-600 md:grid-cols-2">
@@ -238,8 +238,8 @@ export default async function HomePage() {
         </section>
 
         {/* FAQ */}
-        <section className="mx-auto max-w-3xl px-6 py-8">
-          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Frequently asked questions</h2>
+        <section className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+          <h2 className="text-xl font-extrabold tracking-tight sm:text-3xl">Frequently asked questions</h2>
           <div className="mt-5 divide-y divide-slate-200 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
             {[
               [
@@ -275,8 +275,8 @@ export default async function HomePage() {
         </section>
 
         {/* FEATURES */}
-        <section className="mx-auto mt-10 max-w-7xl px-6 py-14">
-          <h2 className="text-center text-3xl font-extrabold tracking-tight">Everything you need to make it yours</h2>
+        <section className="mx-auto mt-6 max-w-7xl px-4 py-10 sm:mt-10 sm:px-6 sm:py-14">
+          <h2 className="text-center text-2xl font-extrabold tracking-tight sm:text-3xl">Everything you need to make it yours</h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f) => (
               <div key={f.title} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -289,9 +289,9 @@ export default async function HomePage() {
         </section>
 
         {/* CTA */}
-        <section className="mx-auto max-w-7xl px-6">
-          <div className="rounded-3xl bg-slate-900 px-8 py-14 text-center text-white">
-            <h2 className="text-3xl font-extrabold">Want to design from scratch?</h2>
+        <section className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="rounded-3xl bg-slate-900 px-5 py-10 text-center text-white sm:px-8 sm:py-14">
+            <h2 className="text-2xl font-extrabold sm:text-3xl">Want to design from scratch?</h2>
             <p className="mx-auto mt-2 max-w-xl text-slate-300">
               Open a blank canvas, add your own text, shapes and photos – then publish it as a template.
             </p>

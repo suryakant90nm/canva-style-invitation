@@ -95,7 +95,12 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
   const titleRef = useRef(initialTitle);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  // server + first client render must match (no window access here); on
+  // phones we close the panel right after mount so the canvas is visible.
   const [tab, setTab] = useState<Tab | null>("templates");
+  useEffect(() => {
+    if (window.innerWidth < 768) setTab(null);
+  }, []);
   const [zoom, setZoom] = useState(1);
   const [areaSize, setAreaSize] = useState({ w: 900, h: 700 });
   const [selH, setSelH] = useState(0);
@@ -859,7 +864,7 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-100 text-slate-900">
       {/* top bar */}
-      <header className="z-30 flex h-14 shrink-0 items-center gap-3 bg-gradient-to-r from-violet-700 to-fuchsia-600 px-4 text-white">
+      <header className="z-30 flex h-14 shrink-0 items-center gap-2 bg-gradient-to-r from-violet-700 to-fuchsia-600 px-3 text-white sm:gap-3 sm:px-4">
         <Link href="/" className="flex items-center gap-2 font-extrabold tracking-tight" title="Back to home">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/20">✉</span>
           <span className="hidden sm:inline">ShubhInvite</span>
@@ -874,7 +879,7 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
             titleRef.current = e.target.value;
             markDirty();
           }}
-          className="mx-2 w-44 rounded-lg border border-transparent bg-white/10 px-3 py-1.5 text-sm font-medium outline-none placeholder:text-white/60 hover:bg-white/20 focus:border-white/40 focus:bg-white/20 sm:w-64"
+          className="mx-1 min-w-0 flex-1 rounded-lg border border-transparent bg-white/10 px-3 py-1.5 text-sm font-medium outline-none placeholder:text-white/60 hover:bg-white/20 focus:border-white/40 focus:bg-white/20 sm:mx-2 sm:w-64 sm:flex-none"
           placeholder="Untitled design"
         />
         <div className="flex items-center gap-1">
@@ -897,7 +902,7 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
         </div>
         <button
           onClick={() => void save()}
-          className={`hidden text-xs sm:block ${status === "error" ? "font-bold text-amber-200 underline" : "text-white/80"}`}
+          className={`hidden text-xs lg:block ${status === "error" ? "font-bold text-amber-200 underline" : "text-white/80"}`}
         >
           {statusLabel}
         </button>
@@ -911,8 +916,8 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
           <Popover
             alignRight
             width={220}
-            className="!h-9 !bg-white !px-4 !font-semibold !text-violet-700 hover:!bg-amber-100"
-            trigger={<span>⬇ Download</span>}
+            className="!h-9 !bg-white !px-3 !font-semibold !text-violet-700 hover:!bg-amber-100 sm:!px-4"
+            trigger={<span><span className="sm:hidden">⬇</span><span className="hidden sm:inline">⬇ Download</span></span>}
           >
             <div className="grid gap-1">
               {(
@@ -942,8 +947,8 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
       </header>
 
       <div className="flex min-h-0 flex-1">
-        {/* rail */}
-        <nav className="z-20 flex w-[72px] shrink-0 flex-col items-stretch gap-1 bg-slate-900 py-2">
+        {/* rail (desktop) */}
+        <nav className="z-20 hidden w-[72px] shrink-0 flex-col items-stretch gap-1 bg-slate-900 py-2 md:flex">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -958,13 +963,17 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
           ))}
         </nav>
 
-        {/* panel */}
+        {/* panel: sidebar on desktop, bottom-sheet on mobile */}
         {tab && (
-          <aside className="z-10 flex w-[320px] shrink-0 flex-col border-r border-slate-200 bg-white">
+          <aside
+            className="fixed inset-x-0 bottom-[60px] z-30 flex max-h-[62vh] flex-col rounded-t-2xl border-t border-slate-200 bg-white shadow-[0_-12px_40px_rgba(0,0,0,0.18)] md:static md:z-10 md:max-h-none md:w-[320px] md:shrink-0 md:rounded-none md:border-r md:border-t-0 md:shadow-none"
+          >
             <div className="flex h-12 items-center justify-between border-b border-slate-100 px-4">
+              <div className="mx-auto h-1 w-10 rounded-full bg-slate-300 md:hidden" aria-hidden />
               <h2 className="text-sm font-bold">{TABS.find((t) => t.id === tab)?.label}</h2>
               <button onClick={() => setTab(null)} className="rounded-md px-2 py-1 text-slate-400 hover:bg-slate-100" title="Close panel">
-                ‹
+                <span className="hidden md:inline">‹</span>
+                <span className="md:hidden">✕</span>
               </button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
@@ -1015,7 +1024,7 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
               }
             }}
           >
-            <div className="flex min-h-full min-w-full flex-col items-center p-10">
+            <div className="flex min-h-full min-w-full flex-col items-center p-4 pb-24 md:p-10">
               <div className="m-auto" style={{ width: doc.width * scale, height: doc.height * scale }}>
                 <div
                   data-stage
@@ -1250,8 +1259,8 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
             </div>
           </div>
 
-          {/* bottom bar */}
-          <div className="flex h-11 shrink-0 items-center gap-3 border-t border-slate-200 bg-white px-4 text-xs text-slate-600">
+          {/* bottom bar (desktop) */}
+          <div className="hidden h-11 shrink-0 items-center gap-3 border-t border-slate-200 bg-white px-4 text-xs text-slate-600 md:flex">
             <span className="hidden md:inline">
               {doc.width} × {doc.height}px · {doc.elements.length} layers
             </span>
@@ -1287,6 +1296,26 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
           </div>
         </div>
       </div>
+
+      {/* mobile bottom tab bar (Canva-app style) */}
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-[60px] items-stretch border-t border-slate-200 bg-white md:hidden">
+        <div className="flex w-full items-stretch overflow-x-auto">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab((cur) => (cur === t.id ? null : t.id))}
+              className={`flex min-w-[72px] flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition ${
+                tab === t.id ? "text-violet-700" : "text-slate-500"
+              }`}
+            >
+              <span className={`grid h-7 w-7 place-items-center rounded-lg text-base leading-none ${tab === t.id ? "bg-violet-100" : ""}`}>
+                {t.icon}
+              </span>
+              <span className="whitespace-nowrap">{t.label === "Background" ? "Backdrop" : t.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
 
       {/* offscreen export render */}
       {exporting && (
