@@ -1,120 +1,83 @@
-# 💌 ShubhInvite — Free Invitation Card Maker
+# 💌 ShubhInvite — Free Invitation Card Maker for India
 
-**ShubhInvite** is a free, Canva-style online invitation card maker built for the Indian market. Users pick a
-designer template, customise every word, colour and photo in a drag-and-drop editor, then download in HD for
-WhatsApp, Instagram or print.
+> Canva-style online editor for **wedding, birthday, baby-shower and festival invitations** —
+> in **13 Indian languages**, with a one-click **multi-event Story Invite** that exports as a
+> **real MP4 video** for WhatsApp. Runs on Vercel with **zero configuration**.
 
-Target keywords: invitation card maker · shadi card design · shubh vivah card · baby shower invitation ·
-godh bharai card · birthday invitation card maker with name and photo
+**Live:** https://canva-style-invitation.vercel.app · **Repo:** https://github.com/suryakant90nm/canva-style-invitation
 
-## ✨ Features
+---
 
-- **67 ready templates** — 17 marriage, 17 birthday, 17 baby shower, 16 invitation/festival
-- **Full editor** — drag, resize, rotate, snap guides, layers, lock, duplicate, undo/redo, shortcuts
-- **27 fonts** including Hindi (Yatra One, Rozha One, Tiro Devanagari)
-- **Built-in Indian art library** — Ganesha, bride & groom, mandala, diya, balloons (free, no attribution)
-- **Photos** — upload your own, or search free stock (curated library included; Pexels/Unsplash optional)
-- **10 photo-collage layouts** — polaroid, film strip, circle, arch, grid
-- **Download** HD PNG, JPG or print-ready PDF · no watermark
-- **SEO** — per-page metadata, JSON-LD, sitemap.xml, robots.txt
-- **Community templates** — users can publish their own design
+## 📚 Documentation
 
-## 🛠 Tech stack
+| Document | Who it's for |
+| --- | --- |
+| [**User Guide**](docs/USER-GUIDE.md) | Anyone using the website — templates, editor, Story Invite, downloads |
+| [**Developer Guide**](docs/DEVELOPER-GUIDE.md) | Adding templates, languages, art; architecture; API reference |
+| [**Deployment Guide**](docs/DEPLOYMENT.md) | GitHub → Vercel, environment variables, custom domain, database |
+| [**Troubleshooting**](docs/TROUBLESHOOTING.md) | Common problems and fixes |
+| [**हिंदी गाइड**](docs/HINDI-GUIDE.md) | Quick start in Hindi for non-technical users |
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · PostgreSQL · Drizzle ORM · html-to-image
+---
 
-## 🚀 Run locally
+## ✨ Features at a glance
+
+| Area | Details |
+| --- | --- |
+| **70 templates** | 17 wedding · 17 birthday · 17 baby shower · 16 invitation/festival · 3 editable examples |
+| **Canva-style editor** | Drag, resize, rotate, snap guides, layers, lock, duplicate, undo/redo, keyboard shortcuts, autosave |
+| **Multi-page** | **+ Add page** under the canvas → blank / duplicate / any template. Page strip with reorder & delete |
+| **13 languages** | English, हिंदी, मराठी, राजस्थानी, ਪੰਜਾਬੀ, ગુજરાતી, বাংলা, தமிழ், తెలుగు, മലയാളം, ಕನ್ನಡ, ଓଡ଼ିଆ, اردو — UI + native fonts + ready phrases |
+| **Story Invite** | Haldi → Mehendi → Sangeet → Shaadi → Reception generated in one click, in the chosen language |
+| **🎬 Video Studio** | 12 transitions · 9 motions · 6 overlays · 6 one-click presets · per-page effects · **live preview** · 720p/1080p · real **MP4/WebM**, rendered in the browser (no server, no paid API) |
+| **🔐 Super-admin panel** | `/admin` — hide/feature/rename templates, delete community uploads, announcement banner, maintenance notice, usage stats |
+| **Downloads** | HD PNG · JPG (per page) · multi-page PDF · MP4 video |
+| **Share** | WhatsApp (native share sheet with the video on phones) · Facebook |
+| **Art library** | Bundled Indian illustrations — Ganesha, bride & groom, mandala, diya, balloons… |
+| **Photos** | Upload your own · free curated stock library · optional Pexels/Unsplash |
+| **Mobile** | Fully responsive 360px+; Canva-app-style editor with bottom tab bar |
+| **SEO** | Per-page metadata, JSON-LD, sitemap.xml, robots.txt, Indian search keywords |
+| **Zero-config hosting** | Works without a database (browser + memory store); PostgreSQL optional |
+
+---
+
+## 🚀 Quick start (local)
 
 ```bash
+git clone https://github.com/suryakant90nm/canva-style-invitation.git
+cd canva-style-invitation
 npm install
-cp .env.example .env.local      # then edit DATABASE_URL
-npx drizzle-kit push            # create tables
 npm run dev
 ```
 
-Open http://localhost:3000 — templates seed themselves on first request.
+Open <http://localhost:3000>. **No environment variables needed.**
 
-### Environment variables
+---
 
-| Name | Required | Purpose |
-| --- | --- | --- |
-| `DATABASE_URL` | yes | PostgreSQL connection string |
-| `NEXT_PUBLIC_SITE_URL` | yes (prod) | Canonical URL for SEO, sitemap, robots |
-| `PEXELS_API_KEY` | no | Optional larger photo search |
-| `UNSPLASH_ACCESS_KEY` | no | Optional larger photo search |
+## 🛠 Tech stack
 
-## ☁️ Deploy to Vercel
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Drizzle ORM (optional PostgreSQL) · html-to-image · MediaRecorder API
 
-**1. Push to GitHub**
+---
 
-```bash
-git init
-git add .
-git commit -m "feat: ShubhInvite invitation card maker"
-git branch -M main
-git remote add origin https://github.com/<your-username>/shubhinvite.git
-git push -u origin main
-```
-
-**2. Create a Postgres database** (any free tier works)
-
-- Vercel Postgres / Neon (https://neon.tech) / Supabase / Railway
-
-Copy the connection string, e.g. `postgresql://user:pass@host/db?sslmode=require`
-
-**3. Import on Vercel**
-
-1. Go to https://vercel.com/new and import the repo
-2. Framework preset: Next.js (auto-detected)
-3. Add environment variables:
-   - `DATABASE_URL` = your Postgres connection string
-   - `NEXT_PUBLIC_SITE_URL` = `https://your-app.vercel.app`
-4. Click **Deploy**
-
-**4. Create the tables (once)**
-
-```bash
-DATABASE_URL="<production-url>" npx drizzle-kit push
-```
-
-**5. Custom domain (optional)** — Vercel → Settings → Domains. Then set
-`NEXT_PUBLIC_SITE_URL=https://shubhinvite.com` and redeploy so canonical URLs and the sitemap update.
-
-## 🧩 Project structure
+## 🗂 Project structure (short)
 
 ```
 src/
-├─ app/
-│  ├─ page.tsx                 home (hero, categories, FAQ, JSON-LD)
-│  ├─ templates/               browse + detail pages (SEO metadata)
-│  ├─ editor/[id]/             the card editor
-│  ├─ my-designs/              saved designs
-│  ├─ sitemap.ts, robots.ts    SEO
-│  └─ api/                     templates · designs · stock · img proxy · health
-├─ components/
-│  ├─ DesignView.tsx           renders a design doc (cards + thumbnails)
-│  └─ editor/                  Editor, Toolbar, panels, export
-├─ db/                         Drizzle schema + client
-└─ lib/
-   ├─ design.ts  decor.ts  art.ts  curated-photos.ts
-   ├─ categories.ts  fonts.ts  site.ts
-   └─ templates/               67 template definitions
-public/art/                    bundled Indian illustrations
+├─ app/            pages + API routes
+├─ components/     UI (Header, MegaMenu, editor/…)
+├─ lib/
+│  ├─ templates/   ← 70 templates · add yours in my-templates.ts
+│  ├─ design.ts    document model
+│  ├─ decor.ts     template building helpers
+│  ├─ languages.ts i18n-copy.ts ui-strings.ts   ← 13 languages
+│  └─ data.ts      storage (DB ↔ memory fallback)
+└─ public/art/     bundled illustrations
 ```
 
-## 🔌 Public API
+Full tree and explanations in the [Developer Guide](docs/DEVELOPER-GUIDE.md).
 
-```bash
-GET  /api/templates?category=wedding&tag=Hindu&q=gold&sort=popular
-POST /api/designs        { "ownerId": "...", "templateSlug": "royal-maroon-shubh-vivah" }
-PUT  /api/designs/:id    { "title": "...", "data": { ...doc } }
-GET  /api/stock?q=marigold
-```
-
-## 📈 SEO
-
-Per-template titles, descriptions, canonical URLs and `Product` JSON-LD; `WebApplication`, `Organization` and
-`FAQPage` schema on the home page; dynamic `sitemap.xml`; `robots.txt` that excludes `/editor/*` and `/api/*`.
+---
 
 ## 📄 License
 

@@ -42,14 +42,14 @@ export default function MyDesigns() {
   return (
     <div className="mt-8 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
       <BlankDesignButton
-        className="flex aspect-[4/5] flex-col items-center justify-center gap-2 self-start rounded-2xl border-2 border-dashed border-violet-300 bg-violet-50 text-violet-700 transition hover:bg-violet-100"
+        className="flex aspect-[4/5] flex-col items-center justify-center gap-2 self-start rounded-2xl border-2 border-dashed border-gold-400 bg-gold-50 text-maroon-700 transition hover:bg-gold-100"
       >
         <span className="text-5xl leading-none">+</span>
         <span className="text-sm font-semibold">New design</span>
       </BlankDesignButton>
       {rows.map((d) => (
         <div key={d.id} className="group">
-          <Link href={`/editor/${d.id}`} className="block rounded-2xl bg-slate-200 p-3 ring-1 ring-slate-200 transition hover:ring-violet-300">
+          <Link href={`/editor/${d.id}`} className="lift block rounded-2xl bg-ivory-dark p-3 ring-1 ring-gold-200/60 hover:ring-gold-400">
             <div className="flex aspect-[4/5] items-center justify-center">
               <div
                 className="shadow-md"
@@ -72,7 +72,7 @@ export default function MyDesigns() {
       ))}
       {rows.length === 0 && (
         <p className="col-span-full text-slate-500">
-          No designs yet. <Link href="/templates" className="font-semibold text-violet-600 hover:underline">Browse templates</Link> to start.
+          No designs yet. <Link href="/templates" className="font-semibold text-maroon-700 hover:underline">Browse templates</Link> to start.
         </p>
       )}
     </div>

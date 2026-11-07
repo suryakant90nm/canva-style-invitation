@@ -104,18 +104,18 @@ export function CreateMenu() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="whitespace-nowrap rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3.5 py-2 text-sm font-semibold text-white shadow-md shadow-violet-500/30 transition hover:brightness-110 sm:px-5 sm:py-2.5"
+        className="btn-shine whitespace-nowrap rounded-full bg-gradient-to-r from-maroon-700 to-maroon-600 px-3.5 py-2 text-sm font-semibold text-white shadow-[var(--shadow-maroon)] ring-1 ring-gold-400/50 transition hover:from-maroon-600 hover:to-maroon-500 sm:px-5 sm:py-2.5"
       >
         {busy ? "Creating…" : <><span className="xl:hidden">+ Create</span><span className="hidden xl:inline">+ Create a design</span></>}
       </button>
       {open && (
-        <div className="absolute right-0 top-12 z-50 w-72 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
+        <div className="absolute right-0 top-12 z-50 w-72 rounded-2xl border border-gold-200 bg-ivory p-2 shadow-2xl">
           <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Blank canvas</p>
           {CATEGORIES.map((c) => (
             <button
               key={c.slug}
               onClick={() => go({ category: c.slug })}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm hover:bg-violet-50"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm hover:bg-blush"
             >
               <span className="text-xl">{c.emoji}</span>
               <span className="font-medium text-slate-800">{c.name}</span>
@@ -126,7 +126,7 @@ export function CreateMenu() {
             <button
               key={s.name}
               onClick={() => go({ width: s.w, height: s.h })}
-              className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm hover:bg-violet-50"
+              className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm hover:bg-blush"
             >
               <span className="text-slate-700">{s.name}</span>
               <span className="text-xs text-slate-400">

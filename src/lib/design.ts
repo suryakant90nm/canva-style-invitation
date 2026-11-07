@@ -82,6 +82,10 @@ export type Doc = {
   pages?: Page[];
   /** UI language used while authoring, drives font defaults */
   lang?: string;
+  /** per-document video effect settings (see lib/video-effects.ts) */
+  video?: unknown;
+  /** "Animate this card" settings (see lib/animate.ts) */
+  animate?: unknown;
 };
 
 export type Page = {

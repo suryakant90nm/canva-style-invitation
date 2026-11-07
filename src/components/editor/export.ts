@@ -1,4 +1,6 @@
 import { toJpeg, toPng } from "html-to-image";
+import { buildTimeline, drawFrame, newParticleCache } from "@/lib/video-render";
+import { DEFAULT_VIDEO, type VideoSettings } from "@/lib/video-effects";
 import { FONTS } from "@/lib/fonts";
 
 const cache = new Map<string, string>();
@@ -122,15 +124,11 @@ export async function renderToImageElement(node: HTMLElement, families: string[]
 
 /* ───────────────────────── VIDEO (no server, no paid API) ───────────────────────── */
 
+
 export type VideoOpts = {
-  /** seconds each page is on screen */
-  secondsPerPage?: number;
-  /** cross-fade duration in seconds */
-  fade?: number;
-  /** output width (height follows the page ratio) */
-  width?: number;
-  /** subtle ken-burns zoom 1.0 → 1.0+zoom */
-  zoom?: number;
+  settings?: VideoSettings;
+  /** page ids in order (must match images order) */
+  pageIds?: string[];
   onProgress?: (pct: number) => void;
 };
 
@@ -149,19 +147,18 @@ function pickMime(): { mime: string; ext: "mp4" | "webm" } {
 }
 
 /**
- * Turn rendered page images into a slideshow video with cross-fades and a
- * gentle zoom, recorded straight from a <canvas> using MediaRecorder.
- * Produces MP4 where the browser supports it (Chrome/Edge/Safari 17+), else WebM.
- * WhatsApp, Instagram and Facebook accept both.
+ * Render page images into a video using the user's effect settings
+ * (per-page transition, motion, duration, overlay). Recorded from a <canvas>
+ * with MediaRecorder → MP4 (Chrome/Edge/Safari 17+) or WebM.
  */
 export async function imagesToVideo(images: HTMLImageElement[], opts: VideoOpts = {}): Promise<{ blob: Blob; ext: "mp4" | "webm" }> {
-  const spp = opts.secondsPerPage ?? 3;
-  const fade = Math.min(opts.fade ?? 0.6, spp / 2);
-  const zoom = opts.zoom ?? 0.06;
+  const settings = opts.settings ?? DEFAULT_VIDEO;
+  const pageIds = opts.pageIds ?? images.map((_, i) => `p${i}`);
+  const tl = buildTimeline(settings, pageIds);
   const fps = 30;
 
   const first = images[0];
-  const W = opts.width ?? 720;
+  const W = settings.width ?? 720;
   const H = Math.round((W * first.naturalHeight) / first.naturalWidth);
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -170,42 +167,19 @@ export async function imagesToVideo(images: HTMLImageElement[], opts: VideoOpts 
 
   const stream = canvas.captureStream(fps);
   const { mime, ext } = pickMime();
-  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: W >= 1080 ? 9_000_000 : 6_000_000 });
   const chunks: BlobPart[] = [];
   rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
   const done = new Promise<Blob>((res) => (rec.onstop = () => res(new Blob(chunks, { type: mime }))));
 
-  const total = images.length * spp;
-  const totalFrames = Math.round(total * fps);
-
-  const drawImage = (img: HTMLImageElement, t01: number, alpha: number) => {
-    const z = 1 + zoom * t01;
-    const dw = W * z;
-    const dh = H * z;
-    ctx.globalAlpha = alpha;
-    ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
-    ctx.globalAlpha = 1;
-  };
+  const particles = newParticleCache();
+  const totalFrames = Math.round(tl.total * fps);
 
   rec.start(250);
   const t0 = performance.now();
   for (let f = 0; f < totalFrames; f++) {
-    const t = f / fps;
-    const idx = Math.min(images.length - 1, Math.floor(t / spp));
-    const local = t - idx * spp; // seconds into current page
-    const t01 = local / spp;
-
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
-    drawImage(images[idx], t01, 1);
-
-    // cross-fade into next page near the end
-    if (idx < images.length - 1 && local > spp - fade) {
-      const a = (local - (spp - fade)) / fade;
-      drawImage(images[idx + 1], 0, a);
-    }
+    drawFrame(ctx, images, tl, settings, particles, f / fps);
     opts.onProgress?.(Math.round((f / totalFrames) * 100));
-    // real-time pacing so the recorder captures every frame
     const target = t0 + (f + 1) * (1000 / fps);
     const wait = target - performance.now();
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));

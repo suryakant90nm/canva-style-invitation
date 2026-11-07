@@ -5,7 +5,8 @@ import { PagesStack, PageView } from "@/components/DesignView";
 import { LANGUAGES, getLanguage, type LangCode } from "@/lib/languages";
 import { pack } from "@/lib/i18n-copy";
 import { buildStoryInvite, defaultStoryEvents, type StoryEvent } from "@/lib/story";
-import { downloadBlob, imagesToVideo, renderToImage, renderToImageElement, shareFiles } from "@/components/editor/export";
+import { renderToImage, renderToImageElement } from "@/components/editor/export";
+import VideoStudio from "@/components/VideoStudio";
 import { FONTS } from "@/lib/fonts";
 import { createDesign } from "@/lib/owner";
 import { getStoredLang, setStoredLang } from "@/components/LanguageSwitcher";
@@ -92,9 +93,11 @@ export default function StoryBuilder() {
     setProgress(0);
   }
 
-  /** Real video file (MP4/WebM) — slideshow of all pages with fades + zoom. */
-  async function downloadVideo(share = false) {
-    setBusy(share ? "share" : "video");
+  const [studio, setStudio] = useState<{ images: HTMLImageElement[]; ids: string[]; names: string[] } | null>(null);
+
+  /** Render pages → open Video Studio (effects, motion, live preview, export, share). */
+  async function openVideoStudio() {
+    setBusy("video");
     setProgress(0);
     try {
       if (typeof MediaRecorder === "undefined") {
@@ -104,22 +107,10 @@ export default function StoryBuilder() {
       if (!nodes.length) throw new Error("render node missing");
       const imgs: HTMLImageElement[] = [];
       for (let i = 0; i < nodes.length; i++) {
-        setProgress(Math.round(((i + 1) / nodes.length) * 30));
+        setProgress(Math.round(((i + 1) / nodes.length) * 100));
         imgs.push(await renderToImageElement(nodes[i], allFamilies, 1.6));
       }
-      const { blob, ext } = await imagesToVideo(imgs, {
-        secondsPerPage: 3.2,
-        fade: 0.7,
-        width: 720,
-        onProgress: (pct) => setProgress(30 + Math.round(pct * 0.7)),
-      });
-      const file = new File([blob], `${safeName}-invite.${ext}`, { type: blob.type });
-      if (share) {
-        const ok = await shareFiles([file], `${couple} — ${pk.events[0].title}`);
-        if (!ok) downloadBlob(blob, file.name);
-      } else {
-        downloadBlob(blob, file.name);
-      }
+      setStudio({ images: imgs, ids: pages.map((p) => p.id), names: pages.map((p) => p.name) });
     } catch (e) {
       alert("Video export failed: " + (e as Error).message);
     }
@@ -156,7 +147,7 @@ export default function StoryBuilder() {
     // On desktop: falls back to a WhatsApp text link.
     const canNative = typeof navigator !== "undefined" && "share" in navigator && "canShare" in navigator;
     if (canNative) {
-      await downloadVideo(true);
+      await openVideoStudio();
       return;
     }
     const text = `${couple} — ${pk.events[0].title}\n\n${pages.map((p, i) => `${i + 1}. ${p.name}`).join("\n")}\n\n${pageUrl}`;
@@ -167,15 +158,15 @@ export default function StoryBuilder() {
   }
 
   const inputCls =
-    "w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100";
+    "w-full rounded-xl border border-gold-200 px-3 py-2.5 text-sm outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-100";
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-4xl">
+        <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-4xl">
           Story Invite — हल्दी से रिसेप्शन तक, एक ही कार्ड में
         </h1>
-        <p className="mt-2 max-w-2xl text-slate-600">
+        <p className="mt-2 max-w-2xl text-ink-soft">
           Wedding me bahut saare functions hote hain. Ek ek alag card banane ki zaroorat nahi — yahan ek hi baar
           me sabhi events ke pages ban jaate hain, aapki bhasha me. Download karke WhatsApp par share karein,
           ya editor me aur customise karein.
@@ -183,15 +174,15 @@ export default function StoryBuilder() {
       </div>
 
       {/* language picker */}
-      <div className="mb-6 rounded-2xl bg-white p-4 ring-1 ring-slate-200">
-        <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">भाषा / Language</p>
+      <div className="mb-6 rounded-2xl bg-white p-4 ring-1 ring-gold-200/70">
+        <p className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-muted">भाषा / Language</p>
         <div className="flex flex-wrap gap-2">
           {LANGUAGES.map((l) => (
             <button
               key={l.code}
               onClick={() => changeLang(l.code)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                lang === l.code ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                lang === l.code ? "bg-maroon-700 text-white shadow-[var(--shadow-maroon)]" : "bg-blush text-ink-soft hover:bg-blush-dark"
               }`}
             >
               {l.flag} {l.native}
@@ -203,16 +194,16 @@ export default function StoryBuilder() {
       <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
         {/* LEFT: form */}
         <div className="space-y-6">
-          <div className="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
-            <label className="block text-sm font-semibold text-slate-800">
+          <div className="rounded-2xl bg-white p-5 ring-1 ring-gold-200/70">
+            <label className="block text-sm font-semibold text-ink">
               Couple / दंपती के नाम
               <input value={couple} onChange={(e) => setCouple(e.target.value)} className={`mt-1.5 ${inputCls}`} placeholder="Aarav & Ananya" />
             </label>
           </div>
 
-          <div className="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
-            <p className="mb-1 text-sm font-semibold text-slate-800">Events चुनें</p>
-            <p className="mb-3 text-xs text-slate-500">जो functions चाहिए उन्हें tick करें — उनके pages बनेंगे।</p>
+          <div className="rounded-2xl bg-white p-5 ring-1 ring-gold-200/70">
+            <p className="mb-1 text-sm font-semibold text-ink">Events चुनें</p>
+            <p className="mb-3 text-xs text-ink-muted">जो functions चाहिए उन्हें tick करें — उनके pages बनेंगे।</p>
             <div className="flex flex-wrap gap-2">
               {pk.events
                 .filter((e) => e.key !== "main")
@@ -223,7 +214,7 @@ export default function StoryBuilder() {
                       key={e.key}
                       onClick={() => toggle(e.key)}
                       className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                        on ? "bg-violet-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        on ? "bg-gold-500 text-maroon-900" : "bg-blush text-ink-soft hover:bg-blush-dark"
                       }`}
                     >
                       {e.emoji} {e.title}
@@ -238,25 +229,25 @@ export default function StoryBuilder() {
             {events.map((ev, i) => {
               const def = pk.events.find((x) => x.key === ev.key);
               return (
-                <div key={ev.key} className="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
+                <div key={ev.key} className="rounded-2xl bg-white p-5 ring-1 ring-gold-200/70">
                   <div className="mb-3 flex items-center gap-2">
-                    <span className="grid h-8 w-8 place-items-center rounded-full bg-violet-100 text-sm font-bold text-violet-700">
+                    <span className="grid h-8 w-8 place-items-center rounded-full bg-gold-100 text-sm font-bold text-maroon-800">
                       {i + 1}
                     </span>
-                    <h3 className="text-base font-bold text-slate-900">
+                    <h3 className="text-base font-bold text-ink">
                       {def?.emoji} {def?.title}
                     </h3>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <label className="text-xs font-medium text-slate-600">
+                    <label className="text-xs font-medium text-ink-soft">
                       {pk.labels.date}
                       <input value={ev.date} onChange={(e) => patch(i, "date", e.target.value)} className={`mt-1 ${inputCls}`} placeholder="14 December 2026" />
                     </label>
-                    <label className="text-xs font-medium text-slate-600">
+                    <label className="text-xs font-medium text-ink-soft">
                       {pk.labels.time}
                       <input value={ev.time} onChange={(e) => patch(i, "time", e.target.value)} className={`mt-1 ${inputCls}`} placeholder="7:00 PM" />
                     </label>
-                    <label className="text-xs font-medium text-slate-600">
+                    <label className="text-xs font-medium text-ink-soft">
                       {pk.labels.venue}
                       <input value={ev.venue} onChange={(e) => patch(i, "venue", e.target.value)} className={`mt-1 ${inputCls}`} placeholder="Taj Palace, Jaipur" />
                     </label>
@@ -269,24 +260,24 @@ export default function StoryBuilder() {
 
         {/* RIGHT: preview + actions (shown first on mobile) */}
         <div className="order-first lg:order-none lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+          <div className="rounded-2xl bg-white p-4 ring-1 ring-gold-200/70">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-bold text-slate-900">
+              <p className="text-sm font-bold text-ink">
                 Live preview · {pages.length} {pages.length === 1 ? "page" : "pages"}
               </p>
-              <button onClick={() => setPreview((p) => !p)} className="text-xs font-semibold text-violet-600 hover:underline">
+              <button onClick={() => setPreview((p) => !p)} className="text-xs font-semibold text-maroon-700 hover:underline">
                 {preview ? "Collapse" : "Expand all"}
               </button>
             </div>
 
-            <div className="max-h-[360px] overflow-y-auto rounded-xl bg-slate-50 p-3 sm:max-h-[520px]">
+            <div className="max-h-[360px] overflow-y-auto rounded-xl bg-ivory-dark/60 p-3 sm:max-h-[520px]">
               {preview ? (
                 <PagesStack doc={doc} />
               ) : (
                 <>
                   <PageView doc={doc} page={pages[0]} className="shadow-md" />
                   {pages.length > 1 && (
-                    <p className="mt-2 text-center text-xs text-slate-500">+ {pages.length - 1} more pages</p>
+                    <p className="mt-2 text-center text-xs text-ink-muted">+ {pages.length - 1} more pages</p>
                   )}
                 </>
               )}
@@ -303,30 +294,30 @@ export default function StoryBuilder() {
 
             <div className="mt-4 grid gap-2">
               <button
-                onClick={() => void downloadVideo(false)}
+                onClick={() => void openVideoStudio()}
                 disabled={busy !== null}
                 className="relative overflow-hidden rounded-xl bg-gradient-to-r from-rose-600 to-orange-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-rose-500/25 transition hover:brightness-110 disabled:opacity-70"
               >
                 {busy === "video" || busy === "share" ? (
                   <>
                     <span className="absolute inset-y-0 left-0 bg-white/20 transition-all" style={{ width: `${progress}%` }} />
-                    <span className="relative">🎬 Video ban raha hai… {progress}%</span>
+                    <span className="relative">🎬 Preparing… {progress}%</span>
                   </>
                 ) : (
-                  <>🎬 Download Video ({pages.length} pages · {Math.round(pages.length * 3.2)}s)</>
+                  <>🎬 Make Video — effects, motion & preview</>
                 )}
               </button>
               <button
                 onClick={() => void downloadImages()}
                 disabled={busy !== null}
-                className="rounded-xl bg-slate-900 py-3 text-sm font-bold text-white transition hover:bg-slate-700 disabled:opacity-60"
+                className="rounded-xl bg-maroon-800 py-3 text-sm font-bold text-white transition hover:bg-maroon-700 disabled:opacity-60"
               >
                 {busy === "image" ? `Rendering… ${progress}%` : `⬇ Download ${pages.length} images (JPG)`}
               </button>
               <button
                 onClick={() => void openEditor()}
                 disabled={busy !== null}
-                className="rounded-xl border-2 border-violet-200 bg-white py-3 text-sm font-bold text-violet-700 transition hover:bg-violet-50 disabled:opacity-60"
+                className="rounded-xl border-2 border-gold-300 bg-white py-3 text-sm font-bold text-maroon-700 transition hover:bg-gold-50 disabled:opacity-60"
               >
                 {busy === "editor" ? "Opening…" : "✎ Open in editor & customise"}
               </button>
@@ -340,7 +331,18 @@ export default function StoryBuilder() {
               </div>
             </div>
 
-            <p className="mt-3 text-[11px] leading-snug text-slate-500">
+            {studio && (
+              <VideoStudio
+                images={studio.images}
+                pageIds={studio.ids}
+                pageNames={studio.names}
+                fileName={`${safeName}-invite`}
+                shareText={`${couple} — ${pk.events[0].title}`}
+                onClose={() => setStudio(null)}
+              />
+            )}
+
+            <p className="mt-3 text-[11px] leading-snug text-ink-muted">
               Video sidha phone me ban jaata hai (koi upload nahi, 100% private). Mobile par WhatsApp button
               video file ko share sheet me kholta hai. PDF chahiye to editor me kholein → Download → PDF.
             </p>

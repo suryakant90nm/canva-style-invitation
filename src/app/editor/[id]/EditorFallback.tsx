@@ -55,7 +55,7 @@ export default function EditorFallback({ id }: { id: string }) {
           where you made them.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link href="/templates" className="rounded-full bg-violet-600 px-6 py-3 font-semibold text-white hover:bg-violet-700">
+          <Link href="/templates" className="rounded-full bg-maroon-700 px-6 py-3 font-semibold text-white hover:bg-maroon-600">
             Browse templates
           </Link>
           <Link href="/my-designs" className="rounded-full border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 hover:bg-slate-100">

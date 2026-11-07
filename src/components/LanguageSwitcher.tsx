@@ -51,19 +51,19 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label="Change language / भाषा बदलें"
-        className={`flex items-center gap-2 rounded-full border-2 border-violet-200 bg-violet-50 font-semibold text-violet-800 transition hover:border-violet-400 hover:bg-violet-100 ${
+        className={`flex items-center gap-2 rounded-full border border-gold-300 bg-gold-50 font-semibold text-maroon-800 transition hover:border-gold-500 hover:bg-gold-100 ${
           compact ? "px-2.5 py-1.5 text-xs sm:px-3" : "px-3.5 py-2 text-sm"
         }`}
         title="Change language"
       >
         <span className="text-base leading-none">🌐</span>
         <span className={compact ? "hidden sm:inline" : ""}>{active.native}</span>
-        <span className="hidden text-xs text-violet-400 sm:inline">▾</span>
+        <span className="hidden text-xs text-gold-600 sm:inline">▾</span>
       </button>
 
       {open && (
         <div className="absolute right-0 top-[calc(100%+8px)] z-[60] w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-          <div className="border-b border-slate-100 bg-gradient-to-r from-violet-600 to-fuchsia-500 px-4 py-3 text-white">
+          <div className="border-b border-gold-200 bg-gradient-to-r from-maroon-700 to-maroon-900 px-4 py-3 text-white">
             <p className="text-xs font-bold uppercase tracking-wider opacity-90">भाषा चुनें · Choose language</p>
             <p className="text-[11px] opacity-80">13 Indian languages supported</p>
           </div>
@@ -75,14 +75,14 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
                   setStoredLang(l.code);
                   setOpen(false);
                 }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition hover:bg-violet-50 ${
-                  l.code === current ? "bg-violet-100 text-violet-800" : "text-slate-700"
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition hover:bg-blush ${
+                  l.code === current ? "bg-gold-100 text-maroon-800" : "text-ink-soft"
                 }`}
               >
                 <span className="text-base font-semibold">{l.native}</span>
                 <span className="flex items-center gap-2 text-xs text-slate-400">
                   {l.english}
-                  {l.code === current && <span className="text-violet-600">✓</span>}
+                  {l.code === current && <span className="text-gold-600">✓</span>}
                 </span>
               </button>
             ))}

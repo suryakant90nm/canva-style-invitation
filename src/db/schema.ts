@@ -29,5 +29,12 @@ export const designs = pgTable("designs", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+/** key/value store for admin settings (template overrides, site config). */
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: jsonb("value").notNull(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export type TemplateRow = typeof templates.$inferSelect;
 export type DesignRow = typeof designs.$inferSelect;

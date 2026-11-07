@@ -23,7 +23,7 @@ function Common({ sel, update, reorder, duplicate, remove }: ToolbarProps & { se
         <Slider label="Opacity" value={Math.round(sel.opacity * 100)} min={0} max={100} onChange={(v) => update({ opacity: v / 100 }, "opacity")} />
         <Slider label="Rotation" value={Math.round(sel.rotation)} min={-180} max={180} onChange={(v) => update({ rotation: v }, "rot")} />
       </Popover>
-      <Popover title="Arrange" trigger={<span>⧉ Arrange</span>} width={190}>
+      <Popover title="Arrange" trigger={<span>⧉ Arrange</span>} width={190} closeOnSelect>
         <div className="grid gap-1">
           {(
             [
@@ -64,7 +64,7 @@ export default function Toolbar(props: ToolbarProps) {
 
   if (!sel) {
     return (
-      <div className="flex min-h-12 items-center gap-2 overflow-x-auto border-b border-slate-200 bg-white px-4 py-1.5 text-sm text-slate-600 md:flex-wrap md:overflow-visible">
+      <div className="flex min-h-12 flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-4 py-1.5 text-sm text-slate-600">
         <span>Page</span>
         <ColorPicker
           label="Background"
@@ -83,7 +83,7 @@ export default function Toolbar(props: ToolbarProps) {
   }
 
   return (
-    <div className="flex min-h-12 items-center gap-1 overflow-x-auto border-b border-slate-200 bg-white px-3 py-1.5 [scrollbar-width:thin] md:flex-wrap md:overflow-visible">
+    <div className="relative z-30 flex min-h-12 flex-wrap items-center gap-1 border-b border-slate-200 bg-white px-3 py-1.5">
       {sel.type === "text" && (
         <>
           <FontPicker value={sel.fontFamily} onChange={(v) => update({ fontFamily: v })} />

@@ -44,7 +44,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#7c3aed",
+  themeColor: "#7a1f2b",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -56,7 +56,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link rel="stylesheet" href={GOOGLE_FONTS_HREF} />
       </head>
-      <body className="bg-slate-50 font-sans text-slate-900 antialiased">{children}</body>
+      <body className="bg-ivory font-sans text-ink antialiased">{children}</body>
     </html>
   );
 }

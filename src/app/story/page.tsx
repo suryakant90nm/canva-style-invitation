@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Footer, Header } from "@/components/Header";
+import { RevealObserver } from "@/components/Motion";
 import StoryBuilder from "./StoryBuilder";
 import { SITE } from "@/lib/site";
 
@@ -24,6 +25,7 @@ export default function StoryPage() {
   return (
     <>
       <Header />
+      <RevealObserver />
       <StoryBuilder />
       <Footer />
     </>

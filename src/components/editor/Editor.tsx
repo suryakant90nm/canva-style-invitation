@@ -15,7 +15,11 @@ import { CATEGORIES } from "@/lib/categories";
 import { cloneDoc, makeImage, pagesOf, resizeDoc, uid, type Doc, type El, type Page, type TextEl } from "@/lib/design";
 import { patchLocalDesign } from "@/lib/local-designs";
 import { getOwnerId } from "@/lib/owner";
-import { downloadBlob, imagesToVideo, renderToImage, renderToImageElement } from "./export";
+import { renderToImage, renderToImageElement } from "./export";
+import VideoStudio from "@/components/VideoStudio";
+import AnimatePanel from "./AnimatePanel";
+import type { AnimateSettings } from "@/lib/animate";
+import type { VideoSettings } from "@/lib/video-effects";
 import { FONTS } from "@/lib/fonts";
 import {
   BackgroundPanel,
@@ -109,6 +113,22 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
   const [uploads, setUploads] = useState<string[]>([]);
   const [exporting, setExporting] = useState<string | null>(null);
   const [showPublish, setShowPublish] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [adminTpl, setAdminTpl] = useState<{ slug: string; title: string; category: string; tags: string[]; featured: boolean } | null>(null);
+
+  // admin session + "editing template X" context (set by the admin panel via ?tpl=)
+  useEffect(() => {
+    fetch("/api/admin/me")
+      .then((r) => r.json())
+      .then((j: { admin: boolean }) => setIsAdminUser(!!j.admin))
+      .catch(() => undefined);
+    try {
+      const raw = sessionStorage.getItem(`admin-tpl-${id}`);
+      if (raw) setAdminTpl(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+  }, [id]);
   const [, setTick] = useState(0);
 
   const pastRef = useRef<Doc[]>([]);
@@ -722,8 +742,11 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
 
   /* ───────── export & publish ───────── */
   const [videoPct, setVideoPct] = useState(0);
+  const [studio, setStudio] = useState<{ images: HTMLImageElement[]; ids: string[]; names: string[] } | null>(null);
+  const [animate, setAnimate] = useState(false);
 
-  async function downloadVideo() {
+  /** Render all pages to images, then open the Video Studio (effects + preview + export). */
+  async function openVideoStudio() {
     setSelectedId(null);
     setEditingId(null);
     setExporting("VIDEO");
@@ -739,19 +762,13 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
       const families = FONTS.map((f) => f.name);
       const imgs: HTMLImageElement[] = [];
       for (let i = 0; i < nodes.length; i++) {
-        setVideoPct(Math.round(((i + 1) / nodes.length) * 30));
+        setVideoPct(Math.round(((i + 1) / nodes.length) * 100));
         imgs.push(await renderToImageElement(nodes[i], families, 1.6));
       }
-      const { blob, ext } = await imagesToVideo(imgs, {
-        secondsPerPage: nodes.length === 1 ? 5 : 3.2,
-        fade: 0.7,
-        width: 720,
-        onProgress: (pct) => setVideoPct(30 + Math.round(pct * 0.7)),
-      });
-      const safe = (titleRef.current || "design").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "design";
-      downloadBlob(blob, `${safe}.${ext}`);
+      const pgs = pagesOf(docRef.current);
+      setStudio({ images: imgs, ids: pgs.map((p) => p.id), names: pgs.map((p) => p.name) });
     } catch (err) {
-      alert("Video export failed: " + (err as Error).message);
+      alert("Could not prepare video: " + (err as Error).message);
     } finally {
       setExporting(null);
       setVideoPct(0);
@@ -864,9 +881,9 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-100 text-slate-900">
       {/* top bar */}
-      <header className="z-30 flex h-14 shrink-0 items-center gap-2 bg-gradient-to-r from-violet-700 to-fuchsia-600 px-3 text-white sm:gap-3 sm:px-4">
+      <header className="z-30 flex h-14 shrink-0 items-center gap-2 bg-gradient-to-r from-maroon-800 via-maroon-700 to-maroon-800 px-3 text-white shadow-[0_1px_0_rgba(201,168,76,0.35)] sm:gap-3 sm:px-4">
         <Link href="/" className="flex items-center gap-2 font-extrabold tracking-tight" title="Back to home">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/20">✉</span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gold-400/20 ring-1 ring-gold-400/40">✉</span>
           <span className="hidden sm:inline">ShubhInvite</span>
         </Link>
         <Link href="/my-designs" className="hidden rounded-lg px-3 py-1.5 text-sm text-white/90 hover:bg-white/15 md:block">
@@ -907,16 +924,39 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
           {statusLabel}
         </button>
         <div className="ml-auto flex items-center gap-2">
+          {isAdminUser ? (
+            <button
+              onClick={() => setShowPublish(true)}
+              className="rounded-full bg-gold-400 px-3 py-1.5 text-sm font-bold text-maroon-900 shadow hover:bg-gold-300 sm:px-4"
+              title="Super admin: save into the official template library"
+            >
+              <span className="sm:hidden">★</span>
+              <span className="hidden sm:inline">★ {adminTpl ? `Save template “${adminTpl.title.slice(0, 18)}”` : "Save as official template"}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowPublish(true)}
+              className="hidden rounded-full border border-white/40 px-4 py-1.5 text-sm font-semibold hover:bg-white/15 md:block"
+            >
+              ★ Publish as template
+            </button>
+          )}
           <button
-            onClick={() => setShowPublish(true)}
-            className="hidden rounded-full border border-white/40 px-4 py-1.5 text-sm font-semibold hover:bg-white/15 md:block"
+            onClick={() => {
+              setSelectedId(null);
+              setEditingId(null);
+              setAnimate(true);
+            }}
+            className="btn-shine rounded-full bg-white/10 px-3 py-1.5 text-sm font-bold text-gold-100 ring-1 ring-gold-400/50 transition hover:bg-white/20 sm:px-4"
+            title="Animate this card into a short clip"
           >
-            ★ Publish as template
+            <span className="sm:hidden">✨</span>
+            <span className="hidden sm:inline">✨ Animate</span>
           </button>
           <Popover
             alignRight
             width={220}
-            className="!h-9 !bg-white !px-3 !font-semibold !text-violet-700 hover:!bg-amber-100 sm:!px-4"
+            className="!h-9 !bg-gold-400 !px-3 !font-semibold !text-maroon-900 hover:!bg-gold-300 sm:!px-4"
             trigger={<span><span className="sm:hidden">⬇</span><span className="hidden sm:inline">⬇ Download</span></span>}
           >
             <div className="grid gap-1">
@@ -933,10 +973,20 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
                 </button>
               ))}
               <button
-                onClick={() => void downloadVideo()}
+                onClick={() => {
+                  setSelectedId(null);
+                  setAnimate(true);
+                }}
+                className="rounded-lg bg-gold-50 px-3 py-2 text-left ring-1 ring-gold-200 hover:bg-gold-100"
+              >
+                <span className="block text-sm font-semibold text-maroon-800">✨ Animate this card – 6–30 s clip</span>
+                <span className="block text-xs text-slate-500">Elements appear one by one · WhatsApp status</span>
+              </button>
+              <button
+                onClick={() => void openVideoStudio()}
                 className="rounded-lg bg-gradient-to-r from-rose-50 to-orange-50 px-3 py-2 text-left ring-1 ring-rose-200 hover:from-rose-100 hover:to-orange-100"
               >
-                <span className="block text-sm font-semibold text-rose-700">🎬 Video – for WhatsApp status</span>
+                <span className="block text-sm font-semibold text-rose-700">🎬 Video Studio – effects & motion</span>
                 <span className="block text-xs text-slate-500">
                   {pages.length > 1 ? `${pages.length} pages → slideshow` : "Animated card, ~5 sec"}
                 </span>
@@ -948,13 +998,13 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
 
       <div className="flex min-h-0 flex-1">
         {/* rail (desktop) */}
-        <nav className="z-20 hidden w-[72px] shrink-0 flex-col items-stretch gap-1 bg-slate-900 py-2 md:flex">
+        <nav className="z-20 hidden w-[72px] shrink-0 flex-col items-stretch gap-1 bg-maroon-900 py-2 md:flex">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab((cur) => (cur === t.id ? null : t.id))}
               className={`mx-1.5 flex flex-col items-center gap-0.5 rounded-xl py-2 text-[11px] font-medium transition ${
-                tab === t.id ? "bg-white/15 text-white" : "text-slate-400 hover:bg-white/10 hover:text-white"
+                tab === t.id ? "bg-gold-400/20 text-gold-100" : "text-maroon-200 hover:bg-white/10 hover:text-white"
               }`}
             >
               <span className="text-lg leading-none">{t.icon}</span>
@@ -1246,10 +1296,10 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
                 <button
                   type="button"
                   onClick={() => setShowAddPage(true)}
-                  className="group flex items-center gap-2 rounded-full border-2 border-dashed border-violet-300 bg-white px-5 py-2.5 text-sm font-semibold text-violet-700 shadow-sm transition hover:border-violet-500 hover:bg-violet-50"
+                  className="group flex items-center gap-2 rounded-full border-2 border-dashed border-gold-400 bg-white px-5 py-2.5 text-sm font-semibold text-maroon-700 shadow-sm transition hover:border-gold-500 hover:bg-gold-50"
                   title="Add a page below this one"
                 >
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-violet-600 text-base leading-none text-white transition group-hover:scale-110">
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-maroon-700 text-base leading-none text-white transition group-hover:scale-110">
                     +
                   </span>
                   Add page
@@ -1305,10 +1355,10 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
               key={t.id}
               onClick={() => setTab((cur) => (cur === t.id ? null : t.id))}
               className={`flex min-w-[72px] flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition ${
-                tab === t.id ? "text-violet-700" : "text-slate-500"
+                tab === t.id ? "text-maroon-700" : "text-ink-muted"
               }`}
             >
-              <span className={`grid h-7 w-7 place-items-center rounded-lg text-base leading-none ${tab === t.id ? "bg-violet-100" : ""}`}>
+              <span className={`grid h-7 w-7 place-items-center rounded-lg text-base leading-none ${tab === t.id ? "bg-gold-100" : ""}`}>
                 {t.icon}
               </span>
               <span className="whitespace-nowrap">{t.label === "Background" ? "Backdrop" : t.label}</span>
@@ -1331,7 +1381,7 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
         <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-900/50 backdrop-blur-sm">
           <div className="rounded-2xl bg-white px-8 py-6 text-center shadow-2xl">
             <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
-            <p className="font-semibold">{exporting === "VIDEO" ? `🎬 Making your video… ${videoPct}%` : `Preparing your ${exporting}${pages.length > 1 ? ` · ${pages.length} pages` : ""}…`}</p>
+            <p className="font-semibold">{exporting === "VIDEO" ? `🎬 Preparing pages… ${videoPct}%` : `Preparing your ${exporting}${pages.length > 1 ? ` · ${pages.length} pages` : ""}…`}</p>
             <p className="text-xs text-slate-500">Rendering in high quality</p>
           </div>
         </div>
@@ -1347,12 +1397,49 @@ export default function Editor({ id, initialTitle, category, initialDoc }: Props
         />
       )}
 
+      {animate && (
+        <AnimatePanel
+          doc={doc}
+          page={{ ...pages[activePage], elements: doc.elements, background: doc.background }}
+          fileName={`${(titleRef.current || "card").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "card"}-animated`}
+          initial={(docRef.current.animate as AnimateSettings | undefined) ?? undefined}
+          onChange={(a) => {
+            const next = { ...docRef.current, animate: a };
+            docRef.current = next;
+            setDoc(next);
+            markDirty();
+          }}
+          onClose={() => setAnimate(false)}
+        />
+      )}
+
+      {studio && (
+        <VideoStudio
+          images={studio.images}
+          pageIds={studio.ids}
+          pageNames={studio.names}
+          fileName={(titleRef.current || "design").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "design"}
+          shareText={titleRef.current}
+          initial={(docRef.current.video as VideoSettings | undefined) ?? undefined}
+          onChange={(vs) => {
+            // persist effect choices with the design (no history entry)
+            const next = { ...docRef.current, video: vs };
+            docRef.current = next;
+            setDoc(next);
+            markDirty();
+          }}
+          onClose={() => setStudio(null)}
+        />
+      )}
+
       {showPublish && (
         <PublishModal
-          initialTitle={title}
-          category={category}
+          initialTitle={adminTpl?.title ?? title}
+          category={adminTpl?.category ?? category}
           getDoc={() => docRef.current}
           onClose={() => setShowPublish(false)}
+          admin={isAdminUser}
+          existing={adminTpl}
         />
       )}
     </div>
@@ -1485,15 +1572,21 @@ function PublishModal({
   category,
   getDoc,
   onClose,
+  admin = false,
+  existing = null,
 }: {
   initialTitle: string;
   category: string;
   getDoc: () => Doc;
   onClose: () => void;
+  admin?: boolean;
+  existing?: { slug: string; title: string; category: string; tags: string[]; featured: boolean } | null;
 }) {
   const [name, setName] = useState(initialTitle === "Untitled design" ? "" : initialTitle);
   const [cat, setCat] = useState(category);
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState(existing?.tags.join(", ") ?? "");
+  const [featured, setFeatured] = useState(existing?.featured ?? true);
+  const [saveMode, setSaveMode] = useState<"overwrite" | "new">(existing ? "overwrite" : "new");
   const [busy, setBusy] = useState(false);
   const [slug, setSlug] = useState<string | null>(null);
   const [err, setErr] = useState("");
@@ -1506,16 +1599,27 @@ function PublishModal({
     setBusy(true);
     setErr("");
     try {
-      const r = await fetch("/api/templates", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: name,
-          category: cat,
-          tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
-          data: getDoc(),
-        }),
-      });
+      const payload = {
+        title: name,
+        category: cat,
+        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+        data: getDoc(),
+      };
+      const r = admin
+        ? await fetch("/api/admin/templates", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...payload,
+              featured,
+              slug: saveMode === "overwrite" && existing ? existing.slug : undefined,
+            }),
+          })
+        : await fetch("/api/templates", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
       const j = (await r.json()) as { template?: { slug: string }; error?: string };
       if (!r.ok || !j.template) throw new Error(j.error ?? "Failed");
       setSlug(j.template.slug);
@@ -1531,8 +1635,10 @@ function PublishModal({
         {slug ? (
           <div className="text-center">
             <div className="text-5xl">🎉</div>
-            <h3 className="mt-3 text-xl font-extrabold">Template published!</h3>
-            <p className="mt-1 text-sm text-slate-500">Anyone can now find and customize your design.</p>
+            <h3 className="mt-3 text-xl font-extrabold">{admin ? "Template saved to the library!" : "Template published!"}</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              {admin ? "It is live on the site now (official template)." : "Anyone can now find and customize your design."}
+            </p>
             <div className="mt-5 flex justify-center gap-3">
               <a href={`/templates/${slug}`} target="_blank" className="rounded-full bg-violet-600 px-5 py-2 text-sm font-semibold text-white">
                 View template
@@ -1544,8 +1650,28 @@ function PublishModal({
           </div>
         ) : (
           <>
-            <h3 className="text-xl font-extrabold">Publish as template</h3>
-            <p className="mt-1 text-sm text-slate-500">Share this design in the template library.</p>
+            <h3 className="text-xl font-extrabold">{admin ? "★ Save as official template" : "Publish as template"}</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              {admin ? "Super admin — this goes straight into the public library." : "Share this design in the template library."}
+            </p>
+            {admin && existing && (
+              <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-1 text-sm">
+                <button
+                  type="button"
+                  onClick={() => setSaveMode("overwrite")}
+                  className={`rounded-lg px-3 py-2 font-semibold ${saveMode === "overwrite" ? "bg-slate-900 text-white" : "text-slate-600"}`}
+                >
+                  Overwrite “{existing.title.slice(0, 16)}”
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSaveMode("new")}
+                  className={`rounded-lg px-3 py-2 font-semibold ${saveMode === "new" ? "bg-slate-900 text-white" : "text-slate-600"}`}
+                >
+                  Save as new
+                </button>
+              </div>
+            )}
             <label className="mt-4 block text-sm font-medium">
               Template name
               <input
@@ -1578,6 +1704,12 @@ function PublishModal({
                 placeholder="Modern, Gold, Floral"
               />
             </label>
+            {admin && (
+              <label className="mt-3 flex items-center gap-2 text-sm font-medium">
+                <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="accent-violet-600" />
+                ⭐ Featured (show on home page)
+              </label>
+            )}
             {err && <p className="mt-3 text-sm text-rose-600">{err}</p>}
             <div className="mt-5 flex justify-end gap-3">
               <button onClick={onClose} className="rounded-full px-5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">

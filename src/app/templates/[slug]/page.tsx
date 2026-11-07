@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Footer, Header } from "@/components/Header";
+import { RevealObserver } from "@/components/Motion";
 import { TemplateCard } from "@/components/TemplateCard";
 import { DesignView } from "@/components/DesignView";
 import { UseTemplateButton } from "@/components/StartButtons";
@@ -38,6 +39,7 @@ export default async function TemplateDetail({ params }: { params: Promise<{ slu
   return (
     <>
       <Header />
+      <RevealObserver />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -54,46 +56,46 @@ export default async function TemplateDetail({ params }: { params: Promise<{ slu
         }}
       />
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-        <nav className="mb-6 text-sm text-slate-500">
-          <Link href="/templates" className="hover:text-violet-600">
+        <nav className="mb-6 text-sm text-ink-muted">
+          <Link href="/templates" className="hover:text-maroon-700">
             Templates
           </Link>{" "}
           /{" "}
-          <Link href={`/templates?category=${t.category}`} className="hover:text-violet-600">
+          <Link href={`/templates?category=${t.category}`} className="hover:text-maroon-700">
             {cat?.plural ?? t.category}
           </Link>{" "}
-          / <span className="text-slate-800">{t.title}</span>
+          / <span className="text-ink">{t.title}</span>
         </nav>
 
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
-          <div className="grid place-items-center rounded-3xl bg-gradient-to-br from-slate-200 to-slate-100 p-4 ring-1 ring-slate-200 sm:p-8">
+          <div className="grid place-items-center rounded-3xl bg-gradient-to-br from-blush to-ivory-dark p-4 ring-1 ring-gold-200 sm:p-8">
             <div className="w-full shadow-2xl" style={{ maxWidth: portrait ? 440 : 640 }}>
               <DesignView doc={t.data} />
             </div>
           </div>
 
           <div className="self-center">
-            <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-violet-700">
+            <span className="rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-maroon-800">
               {cat?.emoji} {cat?.name ?? t.category}
             </span>
-            <h1 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-4xl">{t.title}</h1>
-            <p className="mt-3 text-slate-600">
+            <h1 className="mt-4 font-display text-2xl font-bold tracking-tight text-ink sm:text-4xl">{t.title}</h1>
+            <p className="mt-3 text-ink-soft">
               Fully editable – change the names, date, venue, fonts, colours and background. Add your own photos and
               decorations, then download in HD.
             </p>
             <dl className="mt-6 grid grid-cols-3 gap-4 text-sm">
-              <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200">
-                <dt className="text-slate-400">Size</dt>
+              <div className="rounded-xl bg-white p-3 ring-1 ring-gold-200/70">
+                <dt className="text-ink-muted">Size</dt>
                 <dd className="font-semibold">
                   {t.width} × {t.height}
                 </dd>
               </div>
-              <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200">
-                <dt className="text-slate-400">Used</dt>
+              <div className="rounded-xl bg-white p-3 ring-1 ring-gold-200/70">
+                <dt className="text-ink-muted">Used</dt>
                 <dd className="font-semibold">{t.uses} times</dd>
               </div>
-              <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200">
-                <dt className="text-slate-400">By</dt>
+              <div className="rounded-xl bg-white p-3 ring-1 ring-gold-200/70">
+                <dt className="text-ink-muted">By</dt>
                 <dd className="font-semibold">{t.source === "community" ? "Community" : "CardCanvas"}</dd>
               </div>
             </dl>
@@ -103,7 +105,7 @@ export default async function TemplateDetail({ params }: { params: Promise<{ slu
                   <Link
                     key={tag}
                     href={`/templates?category=${t.category}&tag=${encodeURIComponent(tag)}`}
-                    className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100"
+                    className="rounded-full bg-white px-3 py-1 text-xs font-medium text-ink-soft ring-1 ring-gold-200/70 hover:bg-blush"
                   >
                     #{tag}
                   </Link>
@@ -112,7 +114,7 @@ export default async function TemplateDetail({ params }: { params: Promise<{ slu
             )}
             <UseTemplateButton
               slug={t.slug}
-              className="mt-8 w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-8 py-4 text-base font-bold text-white shadow-lg shadow-violet-500/30 transition hover:brightness-110 disabled:opacity-60 sm:w-auto"
+              className="btn-shine mt-8 w-full rounded-full bg-gradient-to-r from-maroon-700 to-maroon-600 px-8 py-4 text-base font-bold text-white shadow-[var(--shadow-maroon)] ring-1 ring-gold-400/50 transition hover:from-maroon-600 hover:to-maroon-500 disabled:opacity-60 sm:w-auto"
             >
               ✎ Customize this template
             </UseTemplateButton>
@@ -121,7 +123,7 @@ export default async function TemplateDetail({ params }: { params: Promise<{ slu
 
         {related.length > 0 && (
           <section className="mt-16">
-            <h2 className="mb-5 text-2xl font-extrabold tracking-tight">More {cat?.plural ?? "templates"}</h2>
+            <h2 className="mb-5 font-display text-2xl font-bold tracking-tight text-ink">More {cat?.plural ?? "templates"}</h2>
             <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
               {related.map((r) => (
                 <TemplateCard key={r.slug} t={r} />

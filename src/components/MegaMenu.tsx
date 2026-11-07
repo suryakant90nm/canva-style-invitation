@@ -38,7 +38,7 @@ export default function MegaMenu({ templateThumbs }: Props) {
   }, []);
 
   const navLink =
-    "whitespace-nowrap rounded-lg px-2.5 py-2 text-[14px] font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 xl:px-3 xl:text-[15px]";
+    "whitespace-nowrap rounded-lg px-2.5 py-2 text-[14px] font-medium text-ink-soft transition hover:bg-blush hover:text-maroon-700 xl:px-3 xl:text-[15px]";
 
   return (
     <div ref={wrapRef} className="contents">
@@ -49,7 +49,7 @@ export default function MegaMenu({ templateThumbs }: Props) {
             type="button"
             onClick={() => setOpen((o) => !o)}
             className={`flex h-full items-center gap-1.5 whitespace-nowrap border-b-2 px-3 text-[15px] font-semibold transition ${
-              open ? "border-violet-600 text-violet-700" : "border-transparent text-slate-800 hover:text-violet-700"
+              open ? "border-gold-500 text-maroon-700" : "border-transparent text-ink hover:text-maroon-700"
             }`}
             aria-expanded={open}
           >
@@ -62,11 +62,11 @@ export default function MegaMenu({ templateThumbs }: Props) {
 
         <Link
           href="/story"
-          className="ml-1 flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gradient-to-r from-amber-200 to-amber-100 px-3.5 py-1.5 text-[14px] font-bold text-amber-900 shadow-sm ring-1 ring-amber-300/60 transition hover:from-amber-300 hover:to-amber-200"
+          className="btn-shine ml-1 flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gradient-to-r from-gold-300 to-gold-200 px-3.5 py-1.5 text-[14px] font-bold text-maroon-900 shadow-sm ring-1 ring-gold-400/60 transition hover:from-gold-400 hover:to-gold-300"
         >
           <span>🎬</span>
           <T k="storyInvite" />
-          <span className="rounded bg-rose-500 px-1.5 py-px text-[10px] font-extrabold uppercase tracking-wide text-white">New</span>
+          <span className="rounded bg-maroon-700 px-1.5 py-px text-[10px] font-extrabold uppercase tracking-wide text-white">New</span>
         </Link>
 
         <div className="hidden items-center gap-0.5 2xl:flex">
@@ -82,7 +82,7 @@ export default function MegaMenu({ templateThumbs }: Props) {
       <button
         type="button"
         onClick={() => setMobile((m) => !m)}
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-700 hover:bg-slate-100 lg:hidden"
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink hover:bg-blush lg:hidden"
         aria-label="Menu"
       >
         <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -95,16 +95,17 @@ export default function MegaMenu({ templateThumbs }: Props) {
         <div
           onPointerEnter={show}
           onPointerLeave={hide}
-          className="absolute inset-x-0 top-full z-50 hidden border-t border-slate-200 bg-white shadow-[0_24px_60px_rgba(16,24,40,0.14)] lg:block"
+          className="absolute inset-x-0 top-full z-50 hidden border-t border-gold-200 bg-ivory shadow-[0_24px_60px_rgba(43,26,29,0.16)] lg:block"
         >
           <div className="mx-auto grid max-w-[1400px] grid-cols-[1.4fr_1fr_1fr_1fr_1fr] gap-8 px-8 py-8">
             {/* featured */}
-            <div className="rounded-2xl bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-500 p-6 text-white">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-maroon-700 via-maroon-800 to-maroon-900 p-6 text-white ring-1 ring-gold-500/40">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gold-500/20 blur-2xl" />
               <p className="text-xs font-bold uppercase tracking-widest text-white/80">Most popular</p>
               <h3 className="mt-2 text-2xl font-extrabold leading-tight">
                 Story Invite
                 <br />
-                <span className="text-amber-300">Haldi → Reception</span>
+                <span className="text-gold-300">Haldi → Reception</span>
               </h3>
               <p className="mt-2 text-sm text-white/85">
                 Sabhi wedding events ek hi invite me, 13 bhashaon me. WhatsApp par share karein.
@@ -112,7 +113,7 @@ export default function MegaMenu({ templateThumbs }: Props) {
               <Link
                 href="/story"
                 onClick={() => setOpen(false)}
-                className="mt-4 inline-block rounded-full bg-white px-4 py-2 text-sm font-bold text-violet-700 transition hover:bg-amber-200"
+                className="btn-shine mt-4 inline-block rounded-full bg-gold-400 px-4 py-2 text-sm font-bold text-maroon-900 transition hover:bg-gold-300"
               >
                 Create now →
               </Link>
@@ -138,8 +139,8 @@ export default function MegaMenu({ templateThumbs }: Props) {
                     {c.emoji}
                   </span>
                   <span>
-                    <span className="block text-sm font-extrabold text-slate-900 group-hover:text-violet-700">{c.plural}</span>
-                    <span className="block text-[11px] text-slate-500">{templateThumbs[c.slug]?.length ?? 0} designs</span>
+                    <span className="block text-sm font-extrabold text-ink group-hover:text-maroon-700">{c.plural}</span>
+                    <span className="block text-[11px] text-ink-muted">{templateThumbs[c.slug]?.length ?? 0} designs</span>
                   </span>
                 </Link>
                 <ul className="mt-3 space-y-1.5">
@@ -148,7 +149,7 @@ export default function MegaMenu({ templateThumbs }: Props) {
                       <Link
                         href={`/templates?category=${c.slug}&tag=${encodeURIComponent(tag)}`}
                         onClick={() => setOpen(false)}
-                        className="block rounded-md px-2 py-1 text-sm text-slate-600 transition hover:bg-violet-50 hover:text-violet-700"
+                        className="block rounded-md px-2 py-1 text-sm text-ink-soft transition hover:bg-blush hover:text-maroon-700"
                       >
                         {tag}
                       </Link>
@@ -158,7 +159,7 @@ export default function MegaMenu({ templateThumbs }: Props) {
                     <Link
                       href={`/templates?category=${c.slug}`}
                       onClick={() => setOpen(false)}
-                      className="mt-1 block px-2 py-1 text-sm font-semibold text-violet-600 hover:underline"
+                      className="mt-1 block px-2 py-1 text-sm font-semibold text-maroon-600 hover:underline"
                     >
                       <T k="seeAll" />
                     </Link>
@@ -172,19 +173,19 @@ export default function MegaMenu({ templateThumbs }: Props) {
 
       {/* ── mobile drawer ── */}
       {mobile && (
-        <div className="absolute inset-x-0 top-full z-50 border-t border-slate-200 bg-white p-4 shadow-2xl lg:hidden">
-          <Link href="/story" onClick={() => setMobile(false)} className="mb-3 flex items-center gap-2 rounded-xl bg-amber-100 px-4 py-3 font-bold text-amber-900">
+        <div className="absolute inset-x-0 top-full z-50 border-t border-gold-200 bg-ivory p-4 shadow-2xl lg:hidden">
+          <Link href="/story" onClick={() => setMobile(false)} className="mb-3 flex items-center gap-2 rounded-xl bg-gold-100 px-4 py-3 font-bold text-maroon-900">
             🎬 <T k="storyInvite" />
           </Link>
-          <Link href="/templates" onClick={() => setMobile(false)} className="block rounded-lg px-3 py-2.5 font-semibold text-slate-800 hover:bg-slate-100">
+          <Link href="/templates" onClick={() => setMobile(false)} className="block rounded-lg px-3 py-2.5 font-semibold text-ink hover:bg-blush">
             <T k="allTemplates" />
           </Link>
           {CATEGORIES.map((c) => (
-            <Link key={c.slug} href={`/templates?category=${c.slug}`} onClick={() => setMobile(false)} className="block rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-100">
+            <Link key={c.slug} href={`/templates?category=${c.slug}`} onClick={() => setMobile(false)} className="block rounded-lg px-3 py-2.5 text-ink-soft hover:bg-blush">
               {c.emoji} {c.plural}
             </Link>
           ))}
-          <Link href="/my-designs" onClick={() => setMobile(false)} className="block rounded-lg px-3 py-2.5 text-slate-700 hover:bg-slate-100">
+          <Link href="/my-designs" onClick={() => setMobile(false)} className="block rounded-lg px-3 py-2.5 text-ink-soft hover:bg-blush">
             <T k="myDesigns" />
           </Link>
         </div>

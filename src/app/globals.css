@@ -1,7 +1,55 @@
 @import "tailwindcss";
 
-@theme inline {
+/* ═══════════════════════════════════════════════════════════════════════
+   ShubhInvite design tokens — "Royal Heritage" palette
+   Research-based: Indian wedding = maroon/red (60%) + blush/ivory (30%)
+   + antique gold accent (10%). Two primaries + one neutral, max.
+   ═══════════════════════════════════════════════════════════════════════ */
+@theme {
   --font-sans: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-script: "Great Vibes", cursive;
+
+  /* primary — maroon */
+  --color-maroon-50: #fbf1f2;
+  --color-maroon-100: #f5dfe2;
+  --color-maroon-200: #ecc3c9;
+  --color-maroon-300: #dd98a3;
+  --color-maroon-400: #c86677;
+  --color-maroon-500: #ad4256;
+  --color-maroon-600: #8e2838;
+  --color-maroon-700: #7a1f2b;
+  --color-maroon-800: #5e1420;
+  --color-maroon-900: #3f0d16;
+
+  /* accent — antique gold */
+  --color-gold-50: #fdf9ec;
+  --color-gold-100: #f9efcc;
+  --color-gold-200: #f2dd97;
+  --color-gold-300: #e8c766;
+  --color-gold-400: #dcb04a;
+  --color-gold-500: #c9a84c;
+  --color-gold-600: #a4842e;
+  --color-gold-700: #836624;
+  --color-gold-800: #5e4818;
+
+  /* neutrals — ivory / blush / ink */
+  --color-ivory: #fbf7f0;
+  --color-ivory-dark: #f3ebdd;
+  --color-blush: #f7e7e4;
+  --color-blush-dark: #efd4cf;
+  --color-ink: #2b1a1d;
+  --color-ink-soft: #6b5358;
+  --color-ink-muted: #9c858a;
+
+  /* shadows / radii */
+  --shadow-soft: 0 10px 30px -12px rgb(43 26 29 / 0.18);
+  --shadow-gold: 0 10px 30px -10px rgb(201 168 76 / 0.45);
+  --shadow-maroon: 0 14px 34px -12px rgb(122 31 43 / 0.45);
+
+  /* motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 html,
@@ -9,11 +57,202 @@ body {
   min-height: 100%;
 }
 
+body {
+  background: var(--color-ivory);
+  color: var(--color-ink);
+}
+
 /* hover outline in the editor, constant on-screen thickness regardless of zoom */
 .cc-el:hover {
-  outline: calc(2px / var(--s, 1)) solid rgba(124, 58, 237, 0.55);
+  outline: calc(2px / var(--s, 1)) solid rgba(201, 168, 76, 0.75);
 }
 
 textarea {
   font-family: inherit;
+}
+
+/* ═══════════════════════ animations ═══════════════════════ */
+
+/* scroll-reveal: elements start hidden, .is-visible added by IntersectionObserver */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.9s var(--ease-out-expo),
+    transform 0.9s var(--ease-out-expo);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition:
+    opacity 0.9s var(--ease-out-expo),
+    transform 0.9s var(--ease-out-expo);
+}
+.reveal-left.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.92);
+  transition:
+    opacity 0.8s var(--ease-out-expo),
+    transform 0.8s var(--ease-spring);
+}
+.reveal-scale.is-visible {
+  opacity: 1;
+  transform: none;
+}
+/* stagger children */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.7s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+}
+.reveal-stagger.is-visible > * {
+  opacity: 1;
+  transform: none;
+}
+.reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0.05s; }
+.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 0.12s; }
+.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 0.19s; }
+.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 0.26s; }
+.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 0.33s; }
+.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 0.4s; }
+.reveal-stagger.is-visible > *:nth-child(7) { transition-delay: 0.47s; }
+.reveal-stagger.is-visible > *:nth-child(8) { transition-delay: 0.54s; }
+
+/* hero entrance (no observer needed — plays on load) */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: none; }
+}
+.anim-rise { animation: rise-in 1s var(--ease-out-expo) both; }
+.anim-rise-1 { animation: rise-in 1s var(--ease-out-expo) 0.1s both; }
+.anim-rise-2 { animation: rise-in 1s var(--ease-out-expo) 0.25s both; }
+.anim-rise-3 { animation: rise-in 1s var(--ease-out-expo) 0.4s both; }
+.anim-rise-4 { animation: rise-in 1s var(--ease-out-expo) 0.55s both; }
+.anim-rise-5 { animation: rise-in 1s var(--ease-out-expo) 0.7s both; }
+
+/* floating cards in the hero */
+@keyframes float-a {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-14px) rotate(-4deg); }
+}
+@keyframes float-b {
+  0%, 100% { transform: translateY(0) rotate(2deg); }
+  50% { transform: translateY(-18px) rotate(3deg); }
+}
+@keyframes float-c {
+  0%, 100% { transform: translateY(0) rotate(6deg); }
+  50% { transform: translateY(-12px) rotate(8deg); }
+}
+.float-a { animation: float-a 6s ease-in-out infinite; }
+.float-b { animation: float-b 7s ease-in-out infinite; }
+.float-c { animation: float-c 6.5s ease-in-out infinite; }
+
+/* slow drifting gold petals / sparkles */
+@keyframes drift {
+  0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.9; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(110vh) translateX(40px) rotate(360deg); opacity: 0; }
+}
+.petal {
+  position: absolute;
+  top: -10vh;
+  width: 10px;
+  height: 14px;
+  border-radius: 60% 40% 60% 40% / 60% 60% 40% 40%;
+  background: linear-gradient(135deg, #f2d98b, #c9a84c);
+  animation: drift linear infinite;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* shimmer sweep for gold text / buttons */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.text-gold-shimmer {
+  background: linear-gradient(110deg, #a4842e 0%, #f2d98b 35%, #c9a84c 50%, #f2d98b 65%, #a4842e 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.7s var(--ease-out-expo);
+}
+.btn-shine:hover::after {
+  transform: translateX(120%);
+}
+
+/* soft breathing glow */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.06); }
+}
+.glow-pulse { animation: glow-pulse 5s ease-in-out infinite; }
+
+/* card hover lift */
+.lift {
+  transition:
+    transform 0.5s var(--ease-out-expo),
+    box-shadow 0.5s var(--ease-out-expo);
+}
+.lift:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-maroon);
+}
+
+/* ornamental divider line with a lotus dot */
+.orn-line {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold-500), transparent);
+}
+.orn-line::after {
+  content: "✦";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--color-gold-500);
+  background: var(--color-ivory);
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+/* marquee for the language ribbon */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee { animation: marquee 40s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+
+/* respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-left, .reveal-scale, .reveal-stagger > * { opacity: 1; transform: none; transition: none; }
+  .anim-rise, .anim-rise-1, .anim-rise-2, .anim-rise-3, .anim-rise-4, .anim-rise-5,
+  .float-a, .float-b, .float-c, .petal, .glow-pulse, .marquee, .text-gold-shimmer { animation: none; }
 }

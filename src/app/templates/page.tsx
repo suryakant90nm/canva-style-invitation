@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Footer, Header } from "@/components/Header";
+import { RevealObserver } from "@/components/Motion";
 import { TemplateCard } from "@/components/TemplateCard";
 import { BlankDesignButton } from "@/components/StartButtons";
 import { CATEGORIES, getCategory } from "@/lib/categories";
@@ -44,7 +45,7 @@ function href(sp: SP, patch: Partial<SP>) {
 
 const chip = (active: boolean) =>
   `whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition ${
-    active ? "bg-slate-900 text-white" : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"
+    active ? "bg-maroon-700 text-white shadow-[var(--shadow-maroon)]" : "bg-white text-ink-soft ring-1 ring-gold-200/70 hover:bg-blush"
   }`;
 
 export default async function TemplatesPage({ searchParams }: { searchParams: Promise<SP> }) {
@@ -61,17 +62,18 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <Header />
+      <RevealObserver />
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight sm:text-4xl">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-4xl">
               {cat ? `${cat.emoji} ${cat.plural}` : "All templates"}
             </h1>
-            <p className="mt-1 text-slate-500">
+            <p className="mt-1 text-ink-soft">
               {cat ? cat.description : "Invitation, marriage and baby shower cards – pick one and make it yours."}
             </p>
           </div>
-          <form action="/templates" className="flex w-full max-w-md overflow-hidden rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-200">
+          <form action="/templates" className="flex w-full max-w-md overflow-hidden rounded-full bg-white p-1 shadow-sm ring-1 ring-gold-200">
             {cat && <input type="hidden" name="category" value={cat.slug} />}
             <input
               name="q"
@@ -79,7 +81,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
               placeholder="Search templates…"
               className="min-w-0 flex-1 bg-transparent px-4 text-sm outline-none"
             />
-            <button className="rounded-full bg-violet-600 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-700">
+            <button className="btn-shine rounded-full bg-maroon-700 px-5 py-2 text-sm font-semibold text-white hover:bg-maroon-600">
               Search
             </button>
           </form>
@@ -97,20 +99,20 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Style</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Style</span>
           {tags.map((t) => (
             <Link
               key={t}
               href={href(sp, { tag: sp.tag === t ? undefined : t })}
               className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-                sp.tag === t ? "bg-violet-600 text-white" : "bg-violet-50 text-violet-700 hover:bg-violet-100"
+                sp.tag === t ? "bg-gold-500 text-maroon-900" : "bg-gold-50 text-maroon-700 ring-1 ring-gold-200 hover:bg-gold-100"
               }`}
             >
               {t}
             </Link>
           ))}
           <span className="ml-auto flex items-center gap-2 text-xs">
-            <span className="font-semibold uppercase tracking-wider text-slate-400">Sort</span>
+            <span className="font-semibold uppercase tracking-wider text-ink-muted">Sort</span>
             {[
               ["", "Recommended"],
               ["popular", "Popular"],
@@ -120,7 +122,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
                 key={v}
                 href={href(sp, { sort: v || undefined })}
                 className={`rounded-full px-3 py-1 font-medium ${
-                  (sp.sort ?? "") === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"
+                  (sp.sort ?? "") === v ? "bg-maroon-700 text-white" : "bg-white text-ink-soft ring-1 ring-gold-200/70"
                 }`}
               >
                 {l}
@@ -129,10 +131,10 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
           </span>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+        <div className="reveal-stagger mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           <BlankDesignButton
             category={cat?.slug}
-            className="flex aspect-[4/5] flex-col items-center justify-center gap-2 self-start rounded-2xl border-2 border-dashed border-violet-300 bg-violet-50 text-violet-700 transition hover:bg-violet-100"
+            className="flex aspect-[4/5] flex-col items-center justify-center gap-2 self-start rounded-2xl border-2 border-dashed border-gold-400 bg-gold-50 text-maroon-700 transition hover:bg-gold-100"
           >
             <span className="text-5xl leading-none">+</span>
             <span className="text-sm font-semibold">Start from blank</span>
@@ -142,20 +144,20 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
           ))}
         </div>
         {items.length === 0 && (
-          <div className="mt-10 rounded-2xl bg-white p-10 text-center ring-1 ring-slate-200">
+          <div className="mt-10 rounded-2xl bg-white p-10 text-center ring-1 ring-gold-200">
             <p className="text-lg font-semibold">No templates found</p>
-            <p className="mt-1 text-slate-500">Try another search or clear the filters.</p>
-            <Link href="/templates" className="mt-4 inline-block font-semibold text-violet-600 hover:underline">
+            <p className="mt-1 text-ink-soft">Try another search or clear the filters.</p>
+            <Link href="/templates" className="mt-4 inline-block font-semibold text-maroon-700 hover:underline">
               Clear filters
             </Link>
           </div>
         )}
 
         {cat && (
-          <section className="mt-14 max-w-3xl text-sm leading-relaxed text-slate-600">
-            <h2 className="text-xl font-extrabold text-slate-900">
+          <section className="mt-14 max-w-3xl text-sm leading-relaxed text-ink-soft">
+            <h2 className="font-display text-xl font-bold text-ink">
               {cat.name} maker online free — {cat.plural}{" "}
-              <span className="font-semibold text-slate-700">with name &amp; photo</span>
+              <span className="font-semibold text-ink-soft">with name &amp; photo</span>
             </h2>
             <p className="mt-2">
               Create a beautiful {cat.name.toLowerCase()} in two minutes. Pick any design below, edit the names, date,

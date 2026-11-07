@@ -3,6 +3,7 @@ import { designs, templates } from "@/db/schema";
 import { SEED_TEMPLATES } from "./templates";
 import { BUILTIN, builtinBySlug, community, designStore, newId, type StoreTemplate } from "./memory-store";
 import type { Doc } from "./design";
+import { getOverrides } from "./admin-store";
 import { db as dbClient } from "@/db";
 
 /**
@@ -76,6 +77,8 @@ export async function ensureSeeded(): Promise<void> {
             data: t.doc,
             featured: !!t.featured,
           },
+          // only refresh untouched built-ins; admin-edited rows (source='admin') are kept
+          setWhere: sql`${templates.source} = 'system'`,
         });
     }
   })().catch((e) => {
@@ -93,7 +96,33 @@ export type TemplateQuery = {
   source?: string;
   sort?: string;
   limit?: number;
+  /** admin only: include templates hidden by the super admin */
+  includeHidden?: boolean;
 };
+
+/** Apply super-admin overrides (hide / feature / rename) to a template list. */
+async function applyOverrides<T extends StoreTemplate>(rows: T[], includeHidden = false): Promise<(T & { hidden?: boolean })[]> {
+  const ov = await getOverrides();
+  if (!Object.keys(ov).length) return rows;
+  const out: (T & { hidden?: boolean })[] = [];
+  for (const r of rows) {
+    const o = ov[r.slug];
+    if (!o) {
+      out.push(r);
+      continue;
+    }
+    if (o.hidden && !includeHidden) continue;
+    out.push({
+      ...r,
+      hidden: !!o.hidden,
+      featured: o.featured ?? r.featured,
+      title: o.title ?? r.title,
+      category: o.category ?? r.category,
+      tags: o.tags ?? r.tags,
+    });
+  }
+  return out;
+}
 
 const NO_DB_ORDER = (sort?: string) => (a: StoreTemplate, b: StoreTemplate) => {
   if (sort === "new") return b.createdAt.getTime() - a.createdAt.getTime();
@@ -102,7 +131,11 @@ const NO_DB_ORDER = (sort?: string) => (a: StoreTemplate, b: StoreTemplate) => {
 };
 
 function memoryQuery(query: TemplateQuery): StoreTemplate[] {
-  const all = [...BUILTIN, ...Array.from(community.values())];
+  // community/admin edits shadow bundled templates with the same slug
+  const map = new Map<string, StoreTemplate>();
+  for (const t of BUILTIN) map.set(t.slug, t);
+  for (const t of community.values()) map.set(t.slug, t);
+  const all = Array.from(map.values());
   let out = all;
   if (query.category) out = out.filter((t) => t.category === query.category);
   if (query.source) out = out.filter((t) => t.source === query.source);
@@ -121,7 +154,16 @@ function memoryQuery(query: TemplateQuery): StoreTemplate[] {
 }
 
 export async function listTemplates(query: TemplateQuery = {}): Promise<StoreTemplate[]> {
-  if (!(await dbAvailable())) return memoryQuery(query);
+  const rows = await listTemplatesRaw(query);
+  // overrides can change category/featured, so re-filter after applying them
+  let out = await applyOverrides(rows, query.includeHidden);
+  if (query.category) out = out.filter((t) => t.category === query.category);
+  if (query.featured) out = out.filter((t) => t.featured);
+  return out;
+}
+
+async function listTemplatesRaw(query: TemplateQuery = {}): Promise<StoreTemplate[]> {
+  if (!(await dbAvailable())) return memoryQuery({ ...query, limit: 500 });
   try {
     await ensureSeeded();
     const conds = [];
@@ -158,8 +200,15 @@ export async function listTemplates(query: TemplateQuery = {}): Promise<StoreTem
   }
 }
 
-export async function getTemplate(slug: string): Promise<StoreTemplate | undefined> {
-  if (!(await dbAvailable())) return builtinBySlug.get(slug) ?? community.get(slug);
+export async function getTemplate(slug: string, includeHidden = false): Promise<StoreTemplate | undefined> {
+  const raw = await getTemplateRaw(slug);
+  if (!raw) return undefined;
+  const [t] = await applyOverrides([raw], includeHidden);
+  return t;
+}
+
+async function getTemplateRaw(slug: string): Promise<StoreTemplate | undefined> {
+  if (!(await dbAvailable())) return community.get(slug) ?? builtinBySlug.get(slug);
   try {
     await ensureSeeded();
     const [row] = await d().select().from(templates).where(eq(templates.slug, slug)).limit(1);
@@ -174,26 +223,31 @@ export async function createTemplate(input: {
   category: string;
   tags: string[];
   data: Doc;
+  /** "community" (user publish) or "admin" (official, created in the admin panel) */
+  source?: "community" | "admin";
+  featured?: boolean;
+  slug?: string;
 }): Promise<StoreTemplate> {
+  const source = input.source ?? "community";
+  const slug = input.slug?.trim() || `${slugify(input.title)}-${Math.random().toString(36).slice(2, 7)}`;
   if (!(await dbAvailable())) {
     const row: StoreTemplate = {
       id: nextMemId(),
-      slug: `${slugify(input.title)}-${Math.random().toString(36).slice(2, 7)}`,
+      slug,
       title: input.title,
       category: input.category,
       tags: input.tags,
       width: input.data.width,
       height: input.data.height,
       data: input.data,
-      source: "community",
-      featured: false,
+      source,
+      featured: !!input.featured,
       uses: 0,
       createdAt: new Date(),
     };
     community.set(row.slug, row as never);
     return row;
   }
-  const slug = `${slugify(input.title)}-${Math.random().toString(36).slice(2, 7)}`;
   const [row] = await d()
     .insert(templates)
     .values({
@@ -204,7 +258,64 @@ export async function createTemplate(input: {
       width: input.data.width,
       height: input.data.height,
       data: input.data,
-      source: "community",
+      source,
+      featured: !!input.featured,
+    })
+    .returning();
+  return row as StoreTemplate;
+}
+
+/**
+ * Admin: overwrite a template's design/meta in the database.
+ * Built-in (code) templates get a DB row with source "admin" that shadows the
+ * bundled one — so edits survive redeploys and never touch the code.
+ */
+export async function updateTemplate(
+  slug: string,
+  patch: { title?: string; category?: string; tags?: string[]; data?: Doc; featured?: boolean },
+): Promise<StoreTemplate | null> {
+  const existing = (await getTemplateRaw(slug)) ?? null;
+  if (!existing) return null;
+  const merged: StoreTemplate = {
+    ...existing,
+    title: patch.title ?? existing.title,
+    category: patch.category ?? existing.category,
+    tags: patch.tags ?? existing.tags,
+    data: patch.data ?? existing.data,
+    width: (patch.data ?? existing.data).width,
+    height: (patch.data ?? existing.data).height,
+    featured: patch.featured ?? existing.featured,
+    source: existing.source === "system" ? "admin" : existing.source,
+  };
+  if (!(await dbAvailable())) {
+    community.set(slug, merged as never);
+    return merged;
+  }
+  const [row] = await d()
+    .insert(templates)
+    .values({
+      slug,
+      title: merged.title,
+      category: merged.category,
+      tags: merged.tags,
+      width: merged.width,
+      height: merged.height,
+      data: merged.data,
+      source: merged.source,
+      featured: merged.featured,
+    })
+    .onConflictDoUpdate({
+      target: templates.slug,
+      set: {
+        title: merged.title,
+        category: merged.category,
+        tags: merged.tags,
+        width: merged.width,
+        height: merged.height,
+        data: merged.data,
+        source: merged.source,
+        featured: merged.featured,
+      },
     })
     .returning();
   return row as StoreTemplate;
@@ -385,6 +496,68 @@ export async function restoreDesign(input: {
   } catch {
     designStore.set(input.id, rec as never);
   }
+}
+
+/** Delete a community template. Built-in ones are code → hide them via overrides instead. */
+export async function deleteTemplate(slug: string): Promise<boolean> {
+  const builtin = builtinBySlug.get(slug);
+  community.delete(slug);
+  if (await dbAvailable()) {
+    try {
+      await d().delete(templates).where(eq(templates.slug, slug));
+      // built-in: the admin "shadow" row is gone → put the original bundled row back immediately
+      if (builtin) {
+        await d()
+          .insert(templates)
+          .values({
+            slug: builtin.slug,
+            title: builtin.title,
+            category: builtin.category,
+            tags: builtin.tags,
+            width: builtin.width,
+            height: builtin.height,
+            data: builtin.data,
+            source: "system",
+            featured: builtin.featured,
+          })
+          .onConflictDoNothing();
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  // built-ins can't truly be deleted (they are code) — this call reverted it instead
+  return !builtin;
+}
+
+/** Aggregate numbers for the admin dashboard. */
+export async function adminStats() {
+  const all = await listTemplates({ limit: 1000, includeHidden: true });
+  const hidden = all.filter((t) => (t as { hidden?: boolean }).hidden).length;
+  const communityCount = all.filter((t) => t.source === "community").length;
+  const byCategory: Record<string, number> = {};
+  for (const t of all) byCategory[t.category] = (byCategory[t.category] ?? 0) + 1;
+  const totalUses = all.reduce((s, t) => s + (t.uses ?? 0), 0);
+  let designCount = designStore.size;
+  if (await dbAvailable()) {
+    try {
+      const [row] = await d().select({ n: sql<number>`count(*)::int` }).from(designs);
+      designCount = row?.n ?? designCount;
+    } catch {
+      /* ignore */
+    }
+  }
+  return {
+    templates: all.length,
+    hidden,
+    community: communityCount,
+    featured: all.filter((t) => t.featured).length,
+    byCategory,
+    totalUses,
+    designs: designCount,
+    db: await dbAvailable(),
+    top: [...all].sort((a, b) => (b.uses ?? 0) - (a.uses ?? 0)).slice(0, 8).map((t) => ({ slug: t.slug, title: t.title, uses: t.uses ?? 0 })),
+  };
 }
 
 export async function deleteDesign(id: string): Promise<void> {

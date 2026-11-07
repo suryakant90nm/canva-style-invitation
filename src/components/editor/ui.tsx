@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { FONTS } from "@/lib/fonts";
 
 export const PALETTE = [
@@ -46,6 +46,11 @@ export function Sep() {
   return <span className="mx-1 h-6 w-px bg-slate-200" />;
 }
 
+type PopoverCtx = { close: () => void };
+const PopoverContext = createContext<PopoverCtx>({ close: () => undefined });
+/** Call inside popover content to close it (e.g. after picking a colour). */
+export const usePopoverClose = () => useContext(PopoverContext).close;
+
 export function Popover({
   trigger,
   children,
@@ -53,6 +58,7 @@ export function Popover({
   width = 250,
   className = "",
   alignRight = false,
+  closeOnSelect = false,
 }: {
   trigger: ReactNode;
   children: ReactNode;
@@ -60,37 +66,66 @@ export function Popover({
   width?: number;
   className?: string;
   alignRight?: boolean;
+  /** close when any button inside the panel is clicked (menus, swatches) */
+  closeOnSelect?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!open) return;
+    // close on outside click — but ignore the trigger itself (its onClick toggles)
     const h = (e: PointerEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (ref.current && !ref.current.contains(t)) setOpen(false);
     };
-    document.addEventListener("pointerdown", h, true);
-    return () => document.removeEventListener("pointerdown", h, true);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", h);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("pointerdown", h);
+      document.removeEventListener("keydown", esc);
+    };
   }, [open]);
+
+  // keep the panel on-screen: flip to the right edge if it would overflow
+  const [flip, setFlip] = useState(false);
+  useLayoutEffect(() => {
+    if (!open || !panelRef.current) return;
+    const r = panelRef.current.getBoundingClientRect();
+    setFlip(r.right > window.innerWidth - 8);
+  }, [open]);
+
+  const close = () => setOpen(false);
+
   return (
     <div className="relative" ref={ref}>
       <button
         type="button"
         title={title}
+        aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         className={`flex h-9 min-w-9 items-center justify-center gap-1 rounded-lg px-2 text-sm font-medium transition ${
-          open ? "bg-violet-100 text-violet-700" : "text-slate-700 hover:bg-slate-100"
+          open ? "bg-gold-100 text-maroon-800" : "text-slate-700 hover:bg-slate-100"
         } ${className}`}
       >
         {trigger}
       </button>
       {open && (
         <div
-          className={`absolute top-full z-50 mt-2 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl ${
-            alignRight ? "right-0" : "left-0"
+          ref={panelRef}
+          onClick={(e) => {
+            if (!closeOnSelect) return;
+            const btn = (e.target as HTMLElement).closest("button");
+            if (btn && panelRef.current?.contains(btn)) setOpen(false);
+          }}
+          className={`absolute top-full z-[70] mt-2 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl ${
+            alignRight || flip ? "right-0" : "left-0"
           }`}
           style={{ width }}
         >
-          {children}
+          <PopoverContext.Provider value={{ close }}>{children}</PopoverContext.Provider>
         </div>
       )}
     </div>
@@ -117,6 +152,7 @@ export function ColorPicker({
     <Popover
       title={title}
       width={232}
+      closeOnSelect
       trigger={
         <>
           {label && <span className="text-xs text-slate-500">{label}</span>}
